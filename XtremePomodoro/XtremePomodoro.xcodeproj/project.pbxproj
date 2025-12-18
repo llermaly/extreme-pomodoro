@@ -1,0 +1,446 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AAA000001 /* XtremePomodoroApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA000010 /* XtremePomodoroApp.swift */; };
+		AAA000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA000011 /* ContentView.swift */; };
+		AAA000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAA000012 /* Assets.xcassets */; };
+		AAA000004 /* OBSBOTWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAA000014 /* OBSBOTWrapper.mm */; };
+		AAA000005 /* libdev.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AAA000016 /* libdev.dylib */; };
+		AAA000006 /* libdev.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = AAA000016 /* libdev.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		AAA000007 /* OBSBOTManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA000023 /* OBSBOTManager.swift */; };
+		AAA000008 /* CameraCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA000024 /* CameraCapture.swift */; };
+		AAA000009 /* PoseDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA000025 /* PoseDetector.swift */; };
+		AAA00000A /* SessionPhotoManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA000026 /* SessionPhotoManager.swift */; };
+		AAA00000B /* SessionGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA000027 /* SessionGalleryView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AAA000090 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				AAA000006 /* libdev.dylib in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		AAA000010 /* XtremePomodoroApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XtremePomodoroApp.swift; sourceTree = "<group>"; };
+		AAA000011 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		AAA000012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AAA000013 /* OBSBOTWrapper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OBSBOTWrapper.h; sourceTree = "<group>"; };
+		AAA000014 /* OBSBOTWrapper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = OBSBOTWrapper.mm; sourceTree = "<group>"; };
+		AAA000015 /* XtremePomodoro-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "XtremePomodoro-Bridging-Header.h"; sourceTree = "<group>"; };
+		AAA000016 /* libdev.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libdev.dylib; sourceTree = "<group>"; };
+		AAA000017 /* dev.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = dev.hpp; sourceTree = "<group>"; };
+		AAA000018 /* devs.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = devs.hpp; sourceTree = "<group>"; };
+		AAA000019 /* comm.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = comm.hpp; sourceTree = "<group>"; };
+		AAA000020 /* XtremePomodoro.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = XtremePomodoro.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AAA000021 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AAA000022 /* XtremePomodoro.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = XtremePomodoro.entitlements; sourceTree = "<group>"; };
+		AAA000023 /* OBSBOTManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OBSBOTManager.swift; sourceTree = "<group>"; };
+		AAA000024 /* CameraCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCapture.swift; sourceTree = "<group>"; };
+		AAA000025 /* PoseDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseDetector.swift; sourceTree = "<group>"; };
+		AAA000026 /* SessionPhotoManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionPhotoManager.swift; sourceTree = "<group>"; };
+		AAA000027 /* SessionGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionGalleryView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AAA000030 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AAA000005 /* libdev.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AAA000040 = {
+			isa = PBXGroup;
+			children = (
+				AAA000041 /* XtremePomodoro */,
+				AAA000042 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AAA000041 /* XtremePomodoro */ = {
+			isa = PBXGroup;
+			children = (
+				AAA000010 /* XtremePomodoroApp.swift */,
+				AAA000011 /* ContentView.swift */,
+				AAA000023 /* OBSBOTManager.swift */,
+				AAA000024 /* CameraCapture.swift */,
+				AAA000025 /* PoseDetector.swift */,
+				AAA000026 /* SessionPhotoManager.swift */,
+				AAA000027 /* SessionGalleryView.swift */,
+				AAA000012 /* Assets.xcassets */,
+				AAA000021 /* Info.plist */,
+				AAA000022 /* XtremePomodoro.entitlements */,
+				AAA000015 /* XtremePomodoro-Bridging-Header.h */,
+				AAA000043 /* Wrapper */,
+				AAA000044 /* SDK */,
+			);
+			path = XtremePomodoro;
+			sourceTree = "<group>";
+		};
+		AAA000042 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AAA000020 /* XtremePomodoro.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AAA000043 /* Wrapper */ = {
+			isa = PBXGroup;
+			children = (
+				AAA000013 /* OBSBOTWrapper.h */,
+				AAA000014 /* OBSBOTWrapper.mm */,
+			);
+			path = Wrapper;
+			sourceTree = "<group>";
+		};
+		AAA000044 /* SDK */ = {
+			isa = PBXGroup;
+			children = (
+				AAA000016 /* libdev.dylib */,
+				AAA000045 /* include */,
+			);
+			path = SDK;
+			sourceTree = "<group>";
+		};
+		AAA000045 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				AAA000046 /* dev */,
+				AAA000047 /* util */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		AAA000046 /* dev */ = {
+			isa = PBXGroup;
+			children = (
+				AAA000017 /* dev.hpp */,
+				AAA000018 /* devs.hpp */,
+			);
+			path = dev;
+			sourceTree = "<group>";
+		};
+		AAA000047 /* util */ = {
+			isa = PBXGroup;
+			children = (
+				AAA000019 /* comm.hpp */,
+			);
+			path = util;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AAA000050 /* XtremePomodoro */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AAA000070 /* Build configuration list for PBXNativeTarget "XtremePomodoro" */;
+			buildPhases = (
+				AAA000051 /* Sources */,
+				AAA000030 /* Frameworks */,
+				AAA000052 /* Resources */,
+				AAA000090 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = XtremePomodoro;
+			productName = XtremePomodoro;
+			productReference = AAA000020 /* XtremePomodoro.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AAA000060 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					AAA000050 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = AAA000061 /* Build configuration list for PBXProject "XtremePomodoro" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AAA000040;
+			productRefGroup = AAA000042 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AAA000050 /* XtremePomodoro */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AAA000052 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AAA000003 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AAA000051 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AAA000001 /* XtremePomodoroApp.swift in Sources */,
+				AAA000002 /* ContentView.swift in Sources */,
+				AAA000007 /* OBSBOTManager.swift in Sources */,
+				AAA000008 /* CameraCapture.swift in Sources */,
+				AAA000009 /* PoseDetector.swift in Sources */,
+				AAA00000A /* SessionPhotoManager.swift in Sources */,
+				AAA00000B /* SessionGalleryView.swift in Sources */,
+				AAA000004 /* OBSBOTWrapper.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AAA000062 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AAA000063 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		AAA000064 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = XtremePomodoro/XtremePomodoro.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_RESOURCE_ACCESS_USB = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/XtremePomodoro/SDK/include";
+				INFOPLIST_FILE = XtremePomodoro/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "XtremePomodoro needs camera access to track your exercises";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/XtremePomodoro/SDK";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xtreme.pomodoro;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "XtremePomodoro/XtremePomodoro-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		AAA000065 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = XtremePomodoro/XtremePomodoro.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_CAMERA = YES;
+				ENABLE_RESOURCE_ACCESS_USB = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/XtremePomodoro/SDK/include";
+				INFOPLIST_FILE = XtremePomodoro/Info.plist;
+				INFOPLIST_KEY_NSCameraUsageDescription = "XtremePomodoro needs camera access to track your exercises";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = "$(SRCROOT)/XtremePomodoro/SDK";
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xtreme.pomodoro;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "XtremePomodoro/XtremePomodoro-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AAA000061 /* Build configuration list for PBXProject "XtremePomodoro" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AAA000062 /* Debug */,
+				AAA000063 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AAA000070 /* Build configuration list for PBXNativeTarget "XtremePomodoro" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AAA000064 /* Debug */,
+				AAA000065 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AAA000060 /* Project object */;
+}
