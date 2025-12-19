@@ -44,10 +44,15 @@ final class SpeechRecognitionService: ObservableObject {
 
     // MARK: - Initialization
 
-    init() {
-        // Try to find a supported locale
-        Task {
-            await findBestLocale()
+    /// Initialize the speech recognition service
+    /// - Parameter deferLocaleSetup: If true, locale detection is deferred until `startListening()` is called.
+    ///   This prevents system warnings when the service is created but not immediately used.
+    init(deferLocaleSetup: Bool = false) {
+        if !deferLocaleSetup {
+            // Try to find a supported locale immediately
+            Task {
+                await findBestLocale()
+            }
         }
     }
 
@@ -67,7 +72,6 @@ final class SpeechRecognitionService: ObservableObject {
         for locale in supportedLocales {
             if locale.language.languageCode?.identifier == currentLanguage {
                 selectedLocale = locale
-                print("Using fallback locale \(locale.identifier(.bcp47)) for language \(currentLanguage ?? "unknown")")
                 return
             }
         }
@@ -76,7 +80,6 @@ final class SpeechRecognitionService: ObservableObject {
         for fallback in Self.fallbackLocales {
             if supportedIdentifiers.contains(fallback.identifier(.bcp47)) {
                 selectedLocale = fallback
-                print("Using fallback locale: \(fallback.identifier(.bcp47))")
                 return
             }
         }
@@ -84,7 +87,6 @@ final class SpeechRecognitionService: ObservableObject {
         // Last resort: use first available
         if let first = supportedLocales.first {
             selectedLocale = first
-            print("Using first available locale: \(first.identifier(.bcp47))")
         }
     }
 
@@ -270,7 +272,6 @@ final class SpeechRecognitionService: ObservableObject {
         let supportedIdentifiers = supported.map { $0.identifier(.bcp47) }
 
         guard supportedIdentifiers.contains(locale.identifier(.bcp47)) else {
-            print("Locale \(locale.identifier(.bcp47)) not supported. Supported: \(supportedIdentifiers)")
             throw SpeechRecognitionError.localeNotSupported
         }
 
@@ -279,18 +280,14 @@ final class SpeechRecognitionService: ObservableObject {
         let installedIdentifiers = installed.map { $0.identifier(.bcp47) }
 
         if installedIdentifiers.contains(locale.identifier(.bcp47)) {
-            print("Model for \(locale.identifier(.bcp47)) is already installed")
             return
         }
-
-        print("Downloading model for \(locale.identifier(.bcp47))...")
 
         // Download if needed
         if let downloader = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
             downloadProgress = downloader.progress
             try await downloader.downloadAndInstall()
             downloadProgress = nil
-            print("Model download complete")
         }
     }
 

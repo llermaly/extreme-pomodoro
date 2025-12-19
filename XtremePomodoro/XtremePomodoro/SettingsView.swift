@@ -7,7 +7,7 @@ import Speech
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var speechRecognition = SpeechRecognitionService()
+    @StateObject private var speechRecognition = SpeechRecognitionService(deferLocaleSetup: true)
     @State private var lastRecognizedText = ""
     /// TTS service instance - must be retained to prevent deallocation during speech
     @State private var ttsService: NativeTTSService?
