@@ -9,7 +9,6 @@ struct ExercisePhoto: Identifiable {
     let position: Position
     let image: NSImage
     let timestamp: Date
-    var score: Int? // Score 0-100, only set for standing photos (rep completion)
 
     enum Position: String {
         case sitting = "Sitting"
@@ -47,15 +46,14 @@ class SessionPhotoManager: ObservableObject {
     }
 
     /// Capture and store a photo
-    func capturePhoto(image: CGImage, repNumber: Int, position: ExercisePhoto.Position, score: Int? = nil) {
+    func capturePhoto(image: CGImage, repNumber: Int, position: ExercisePhoto.Position) {
         let nsImage = NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height))
 
         let photo = ExercisePhoto(
             repNumber: repNumber,
             position: position,
             image: nsImage,
-            timestamp: Date(),
-            score: score
+            timestamp: Date()
         )
 
         DispatchQueue.main.async {
@@ -64,24 +62,6 @@ class SessionPhotoManager: ObservableObject {
 
         // Save to disk
         savePhotoToDisk(photo)
-    }
-
-    /// Update score for a rep (called when rep completes)
-    func updateScore(forRep repNumber: Int, score: Int) {
-        DispatchQueue.main.async {
-            for i in self.photos.indices {
-                if self.photos[i].repNumber == repNumber {
-                    self.photos[i].score = score
-                }
-            }
-        }
-    }
-
-    /// Get average score for session
-    var averageScore: Int? {
-        let scores = photos.compactMap { $0.score }
-        guard !scores.isEmpty else { return nil }
-        return scores.reduce(0, +) / scores.count
     }
 
     private func savePhotoToDisk(_ photo: ExercisePhoto) {

@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 @main
 struct XtremePomodoroApp: App {
@@ -12,6 +13,8 @@ struct XtremePomodoroApp: App {
                 .environmentObject(pomodoroTimer)
                 .onAppear {
                     setupTimerCallbacks()
+                    MenuBarController.shared.setup(timer: pomodoroTimer)
+                    requestCameraPermissionIfNeeded()
                 }
                 .onChange(of: appState.showExerciseOverlay) { _, showExercise in
                     if showExercise {
@@ -47,6 +50,11 @@ struct XtremePomodoroApp: App {
         pomodoroTimer.workDurationMinutes = appState.workDuration
         pomodoroTimer.breakDurationMinutes = appState.breakDuration
 
+        // When work session starts, record start time
+        pomodoroTimer.onWorkSessionStart = { [weak appState] in
+            appState?.startWorkSession()
+        }
+
         // When work session completes, show exercise overlay
         pomodoroTimer.onWorkSessionComplete = { [weak appState] in
             appState?.triggerExerciseBreak()
@@ -55,6 +63,15 @@ struct XtremePomodoroApp: App {
         // When break completes (after exercise), start next work session
         pomodoroTimer.onBreakSessionComplete = { [weak pomodoroTimer] in
             pomodoroTimer?.startWorkSession()
+        }
+    }
+
+    private func requestCameraPermissionIfNeeded() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { _ in }
+        default:
+            break
         }
     }
 }
@@ -83,6 +100,21 @@ struct MainAppView: View {
         .animation(.easeInOut(duration: 0.3), value: appState.currentScreen)
         .sheet(isPresented: $appState.showAdvancedSettings) {
             AdvancedSettingsView()
+        }
+        .sheet(isPresented: $appState.showSchedule) {
+            ScheduleView(sessionStore: appState.sessionStore)
+                .frame(minWidth: 500, minHeight: 600)
+        }
+        .sheet(isPresented: $appState.showJournalSheet) {
+            if let session = appState.pendingSession {
+                JournalEntrySheet(
+                    isPresented: $appState.showJournalSheet,
+                    session: session,
+                    onSave: { entry in
+                        appState.saveJournalEntry(entry)
+                    }
+                )
+            }
         }
         .onChange(of: appState.workDuration) { _, newValue in
             pomodoroTimer.workDurationMinutes = newValue

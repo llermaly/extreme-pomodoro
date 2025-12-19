@@ -163,18 +163,6 @@ struct ContentView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
 
-                    // Show last rep score
-                    if poseDetector.currentExercise == .sitToStand && poseDetector.lastRepScore > 0 {
-                        HStack(spacing: 4) {
-                            Text("Last rep:")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text("\(poseDetector.lastRepScore)%")
-                                .font(.headline)
-                                .foregroundColor(scoreColor(poseDetector.lastRepScore))
-                        }
-                    }
-
                     // Show exercise state for sit-to-stand
                     if poseDetector.currentExercise == .sitToStand && poseDetector.isCalibrated {
                         HStack {
@@ -237,8 +225,8 @@ struct ContentView: View {
             photoManager.capturePhoto(image: image, repNumber: repNumber, position: pos)
         }
 
-        poseDetector.onRepCompleted = { [weak photoManager] repNumber, score in
-            photoManager?.updateScore(forRep: repNumber, score: score)
+        poseDetector.onRepCompleted = { repNumber in
+            // Rep completed - photo already captured via onCapturePhoto
         }
     }
 
@@ -254,15 +242,6 @@ struct ContentView: View {
             return .blue
         case .goingUp:
             return .purple
-        }
-    }
-
-    private func scoreColor(_ score: Int) -> Color {
-        switch score {
-        case 90...100: return .green
-        case 70..<90: return .blue
-        case 50..<70: return .orange
-        default: return .red
         }
     }
 

@@ -9,8 +9,10 @@ struct OnboardingView: View {
     @StateObject private var cameraCapture = CameraCapture()
     @StateObject private var poseDetector = PoseDetector()
     @State private var showPoseOverlay = true
+    @State private var cameraPermissionGranted = false
+    @State private var cameraPermissionRequested = false
 
-    private let totalSteps = 5
+    private let totalSteps = 4
 
     var body: some View {
         ZStack {
@@ -50,10 +52,9 @@ struct OnboardingView: View {
                 Group {
                     switch currentStep {
                     case 0: welcomeStep
-                    case 1: cameraStep
-                    case 2: exerciseStep
-                    case 3: calibrationStep
-                    case 4: completeStep
+                    case 1: exerciseStep
+                    case 2: cameraCalibrationStep
+                    case 3: completeStep
                     default: welcomeStep
                     }
                 }
@@ -83,8 +84,8 @@ struct OnboardingView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.large)
-                    } else if currentStep == 3 && appState.exerciseType == "sitToStand" {
-                        // Calibration step - show Next if calibrated, Skip otherwise
+                    } else if currentStep == 2 && appState.exerciseType == "sitToStand" {
+                        // Camera + Calibration step - show Next if calibrated, Skip otherwise
                         if poseDetector.isCalibrated {
                             Button("Next") {
                                 nextStep()
@@ -121,18 +122,38 @@ struct OnboardingView: View {
             }
         }
         .frame(minWidth: 800, minHeight: 850)
+        .onAppear {
+            requestCameraPermission()
+        }
         .onDisappear {
             cameraCapture.stopCapture()
         }
     }
 
-    private func nextStep() {
-        // Stop camera when leaving camera/calibration steps
-        if currentStep == 1 || currentStep == 3 {
-            // Keep camera running if going to calibration from camera
-            if !(currentStep == 1 && appState.exerciseType == "sitToStand") {
-                // cameraCapture.stopCapture()
+    private func requestCameraPermission() {
+        guard !cameraPermissionRequested else { return }
+        cameraPermissionRequested = true
+
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            cameraPermissionGranted = true
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    cameraPermissionGranted = granted
+                }
             }
+        case .denied, .restricted:
+            cameraPermissionGranted = false
+        @unknown default:
+            cameraPermissionGranted = false
+        }
+    }
+
+    private func nextStep() {
+        // Stop camera when leaving camera+calibration step
+        if currentStep == 2 {
+            // Camera will be stopped on completeStep onAppear
         }
 
         withAnimation(.easeInOut(duration: 0.2)) {
@@ -169,103 +190,6 @@ struct OnboardingView: View {
             Spacer()
         }
         .padding(50)
-    }
-
-    private var cameraStep: some View {
-        VStack(spacing: 25) {
-            Text("Camera Setup")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-
-            Text("Select and test the camera you'll use for exercise tracking")
-                .foregroundColor(.secondary)
-
-            // Camera preview - large
-            ZStack {
-                if cameraCapture.isCapturing {
-                    ZStack {
-                        CameraPreviewView(cameraCapture: cameraCapture)
-
-                        if showPoseOverlay {
-                            PoseOverlayView(pose: poseDetector.currentPose, imageSize: CGSize(width: 640, height: 480))
-                        }
-                    }
-                    .frame(width: 640, height: 480)
-                    .cornerRadius(16)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(poseDetector.isPersonDetected ? Color.green : Color.gray, lineWidth: 3)
-                    )
-                } else {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.black.opacity(0.8))
-                        .frame(width: 640, height: 480)
-                        .overlay(
-                            VStack(spacing: 15) {
-                                Image(systemName: "camera.fill")
-                                    .font(.system(size: 60))
-                                    .foregroundColor(.gray)
-                                Text("Click 'Start Camera' to preview")
-                                    .foregroundColor(.gray)
-                            }
-                        )
-                }
-            }
-
-            // Status
-            if cameraCapture.isCapturing {
-                HStack {
-                    Circle()
-                        .fill(poseDetector.isPersonDetected ? Color.green : Color.orange)
-                        .frame(width: 12, height: 12)
-                    Text(poseDetector.isPersonDetected ? "Person detected" : "No person detected - stand in front of camera")
-                        .foregroundColor(poseDetector.isPersonDetected ? .green : .orange)
-                }
-            }
-
-            // Controls
-            HStack(spacing: 20) {
-                // Camera selection
-                if !cameraCapture.availableCameras.isEmpty {
-                    Picker("Camera", selection: Binding(
-                        get: { cameraCapture.selectedCamera },
-                        set: { if let cam = $0 { cameraCapture.selectCamera(cam) } }
-                    )) {
-                        ForEach(cameraCapture.availableCameras, id: \.uniqueID) { camera in
-                            Text(camera.localizedName).tag(camera as AVCaptureDevice?)
-                        }
-                    }
-                    .frame(width: 250)
-                }
-
-                Button(cameraCapture.isCapturing ? "Stop Camera" : "Start Camera") {
-                    if cameraCapture.isCapturing {
-                        cameraCapture.stopCapture()
-                    } else {
-                        cameraCapture.poseDetector = poseDetector
-                        cameraCapture.startCapture()
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(cameraCapture.isCapturing ? .red : .green)
-
-                if cameraCapture.isCapturing {
-                    Toggle("Show Skeleton", isOn: $showPoseOverlay)
-                        .toggleStyle(.button)
-                }
-            }
-
-            Spacer()
-        }
-        .padding(40)
-        .onAppear {
-            cameraCapture.loadAvailableCameras()
-            // Auto-start camera
-            if !cameraCapture.isCapturing {
-                cameraCapture.poseDetector = poseDetector
-                cameraCapture.startCapture()
-            }
-        }
     }
 
     private var exerciseStep: some View {
@@ -321,34 +245,87 @@ struct OnboardingView: View {
         .padding(40)
     }
 
-    private var calibrationStep: some View {
+    private var cameraCalibrationStep: some View {
         VStack(spacing: 20) {
-            Text("Calibrate Your Position")
+            Text(appState.exerciseType == "sitToStand" ? "Camera & Calibration" : "Camera Setup")
                 .font(.largeTitle)
                 .fontWeight(.bold)
 
-            if appState.exerciseType == "sitToStand" {
-                Text("Calibration teaches the app your sitting and standing positions")
-                    .foregroundColor(.secondary)
+            Text(appState.exerciseType == "sitToStand"
+                 ? "Select your camera and calibrate your sitting/standing positions"
+                 : "Select the camera you'll use for exercise tracking")
+                .foregroundColor(.secondary)
 
-                // Large camera preview with pose
-                ZStack {
-                    CameraPreviewView(cameraCapture: cameraCapture)
+            // Camera preview with pose overlay
+            ZStack {
+                if cameraCapture.isCapturing {
+                    ZStack {
+                        CameraPreviewView(cameraCapture: cameraCapture)
 
-                    if showPoseOverlay {
-                        PoseOverlayView(pose: poseDetector.currentPose, imageSize: CGSize(width: 640, height: 480))
+                        if showPoseOverlay {
+                            PoseOverlayView(pose: poseDetector.currentPose, imageSize: CGSize(width: 640, height: 480))
+                        }
+                    }
+                    .frame(width: 640, height: 480)
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(borderColor, lineWidth: 3)
+                    )
+                } else {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.black.opacity(0.8))
+                        .frame(width: 640, height: 480)
+                        .overlay(
+                            VStack(spacing: 15) {
+                                Image(systemName: "camera.fill")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.gray)
+                                Text("Starting camera...")
+                                    .foregroundColor(.gray)
+                            }
+                        )
+                }
+            }
+
+            // Camera controls and status
+            HStack(spacing: 20) {
+                // Camera selection
+                if !cameraCapture.availableCameras.isEmpty {
+                    Picker("Camera", selection: Binding(
+                        get: { cameraCapture.selectedCamera },
+                        set: { if let cam = $0 { cameraCapture.selectCamera(cam) } }
+                    )) {
+                        ForEach(cameraCapture.availableCameras, id: \.uniqueID) { camera in
+                            Text(camera.localizedName).tag(camera as AVCaptureDevice?)
+                        }
+                    }
+                    .frame(width: 250)
+                }
+
+                // Person detection status
+                if cameraCapture.isCapturing {
+                    HStack {
+                        Circle()
+                            .fill(poseDetector.isPersonDetected ? Color.green : Color.orange)
+                            .frame(width: 12, height: 12)
+                        Text(poseDetector.isPersonDetected ? "Person detected" : "Stand in front of camera")
+                            .font(.caption)
+                            .foregroundColor(poseDetector.isPersonDetected ? .green : .orange)
                     }
                 }
-                .frame(width: 640, height: 480)
-                .cornerRadius(16)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(poseDetector.isCalibrated ? Color.green : Color.blue, lineWidth: 3)
-                )
 
-                // Calibration status and controls
-                HStack(spacing: 30) {
-                    // Status
+                Toggle("Skeleton", isOn: $showPoseOverlay)
+                    .toggleStyle(.button)
+            }
+
+            // Calibration section (only for sit-to-stand)
+            if appState.exerciseType == "sitToStand" {
+                Divider()
+                    .padding(.vertical, 8)
+
+                // Calibration status
+                HStack(spacing: 20) {
                     HStack {
                         Circle()
                             .fill(poseDetector.isCalibrated ? Color.green : Color.orange)
@@ -358,20 +335,19 @@ struct OnboardingView: View {
                             .foregroundColor(poseDetector.isCalibrated ? .green : .orange)
                     }
 
-                    // Pose status
-                    HStack {
-                        Circle()
-                            .fill(poseDetector.isPersonDetected ? Color.green : Color.red)
-                            .frame(width: 14, height: 14)
-                        Text(poseDetector.poseDescription)
-                            .foregroundColor(.secondary)
+                    if cameraCapture.isCapturing {
+                        HStack {
+                            Circle()
+                                .fill(poseDetector.isPersonDetected ? Color.green : Color.red)
+                                .frame(width: 10, height: 10)
+                            Text(poseDetector.poseDescription)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
-
-                    Toggle("Skeleton", isOn: $showPoseOverlay)
-                        .toggleStyle(.button)
                 }
 
-                // Calibration message / button
+                // Calibration controls
                 if poseDetector.calibrationState != .notCalibrated &&
                    poseDetector.calibrationState != .calibrated {
                     // Active calibration in progress
@@ -392,27 +368,29 @@ struct OnboardingView: View {
                         .tint(.red)
                     }
                 } else if poseDetector.isCalibrated {
-                    // Calibration complete - show success message and options
-                    VStack(spacing: 16) {
+                    VStack(spacing: 12) {
                         Text("Calibration Complete!")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.headline)
                             .foregroundColor(.green)
 
-                        HStack(spacing: 20) {
-                            Button("Re-Calibrate") {
-                                poseDetector.startCalibration()
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(.purple)
-                            .controlSize(.large)
+                        HStack {
+                            Text("Sit Y: \(String(format: "%.3f", poseDetector.sittingHipY))")
+                            Text("|")
+                            Text("Stand Y: \(String(format: "%.3f", poseDetector.standingHipY))")
                         }
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                        Button("Re-Calibrate") {
+                            poseDetector.startCalibration()
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.purple)
                     }
                     .padding()
                     .background(Color.green.opacity(0.1))
                     .cornerRadius(12)
                 } else {
-                    // Not calibrated - show start button
                     Button("Start Calibration") {
                         poseDetector.startCalibration()
                     }
@@ -420,46 +398,43 @@ struct OnboardingView: View {
                     .tint(.purple)
                     .controlSize(.large)
                 }
-
-                if poseDetector.isCalibrated {
-                    HStack {
-                        Text("Sit Y: \(String(format: "%.3f", poseDetector.sittingHipY))")
-                        Text("|")
-                        Text("Stand Y: \(String(format: "%.3f", poseDetector.standingHipY))")
-                    }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                }
-
             } else {
-                Spacer()
-
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 80))
-                    .foregroundColor(.green)
-
-                Text("No calibration needed")
-                    .font(.title2)
-                    .fontWeight(.medium)
-
-                Text("Your selected exercise (\(exerciseDisplayName)) doesn't require calibration")
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-
-                Spacer()
+                // Non-calibration exercises - just show camera is ready
+                if cameraCapture.isCapturing && poseDetector.isPersonDetected {
+                    VStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(.green)
+                        Text("Camera ready!")
+                            .font(.headline)
+                            .foregroundColor(.green)
+                    }
+                    .padding()
+                    .background(Color.green.opacity(0.1))
+                    .cornerRadius(12)
+                }
             }
 
             Spacer()
         }
         .padding(40)
         .onAppear {
-            // Ensure camera is running with pose detector
+            cameraCapture.loadAvailableCameras()
+            // Auto-start camera
             if !cameraCapture.isCapturing {
                 cameraCapture.poseDetector = poseDetector
                 cameraCapture.startCapture()
             } else if cameraCapture.poseDetector == nil {
                 cameraCapture.poseDetector = poseDetector
             }
+        }
+    }
+
+    private var borderColor: Color {
+        if appState.exerciseType == "sitToStand" {
+            return poseDetector.isCalibrated ? Color.green : Color.blue
+        } else {
+            return poseDetector.isPersonDetected ? Color.green : Color.gray
         }
     }
 

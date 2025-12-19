@@ -20,6 +20,13 @@ struct PomodoroView: View {
 
                     Spacer()
 
+                    Button(action: { appState.showSchedule = true }) {
+                        Image(systemName: "calendar")
+                            .font(.title2)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Session History")
+
                     Button(action: { appState.showSettings = true }) {
                         Image(systemName: "gear")
                             .font(.title2)

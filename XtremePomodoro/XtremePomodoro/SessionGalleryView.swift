@@ -74,20 +74,6 @@ struct SessionGalleryView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
 
-                if let avgScore = photoManager.averageScore {
-                    Text("|")
-                        .foregroundColor(.secondary)
-                    HStack(spacing: 4) {
-                        Text("Avg Score:")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("\(avgScore)%")
-                            .font(.caption)
-                            .fontWeight(.bold)
-                            .foregroundColor(avgScoreColor(avgScore))
-                    }
-                }
-
                 Spacer()
 
                 if let path = photoManager.sessionPath {
@@ -102,15 +88,6 @@ struct SessionGalleryView: View {
         }
         .frame(minWidth: 900, minHeight: 600)
     }
-
-    private func avgScoreColor(_ score: Int) -> Color {
-        switch score {
-        case 90...100: return .green
-        case 70..<90: return .blue
-        case 50..<70: return .orange
-        default: return .red
-        }
-    }
 }
 
 /// Section showing photos for a single rep
@@ -118,49 +95,17 @@ struct RepPhotoSection: View {
     let repNumber: Int
     let photos: [ExercisePhoto]
 
-    var repScore: Int? {
-        photos.compactMap { $0.score }.first
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Rep \(repNumber)")
-                    .font(.headline)
-                    .foregroundColor(.blue)
-
-                if let score = repScore {
-                    Spacer()
-                    HStack(spacing: 4) {
-                        Text("Score:")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Text("\(score)%")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(scoreColor(score))
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                    .background(scoreColor(score).opacity(0.15))
-                    .cornerRadius(8)
-                }
-            }
+            Text("Rep \(repNumber)")
+                .font(.headline)
+                .foregroundColor(.blue)
 
             HStack(spacing: 12) {
                 ForEach(photos.sorted(by: { $0.position.rawValue < $1.position.rawValue })) { photo in
                     PhotoCard(photo: photo)
                 }
             }
-        }
-    }
-
-    private func scoreColor(_ score: Int) -> Color {
-        switch score {
-        case 90...100: return .green
-        case 70..<90: return .blue
-        case 50..<70: return .orange
-        default: return .red
         }
     }
 }

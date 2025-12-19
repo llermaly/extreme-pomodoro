@@ -31,6 +31,7 @@ class PomodoroTimer: ObservableObject {
     var breakDurationMinutes: Int = 5
 
     // MARK: - Callbacks
+    var onWorkSessionStart: (() -> Void)?
     var onWorkSessionComplete: (() -> Void)?
     var onBreakSessionComplete: (() -> Void)?
 
@@ -61,6 +62,7 @@ class PomodoroTimer: ObservableObject {
         sessionType = .work
         timeRemaining = workDurationMinutes * 60
         timerState = .running
+        onWorkSessionStart?()
         startTimer()
     }
 

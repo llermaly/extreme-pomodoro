@@ -7,11 +7,19 @@ class AppState: ObservableObject {
     @Published var showExerciseOverlay: Bool = false
     @Published var showSettings: Bool = false
     @Published var showAdvancedSettings: Bool = false
+    @Published var showSchedule: Bool = false
+    @Published var showJournalSheet: Bool = false
 
     enum Screen {
         case onboarding
         case pomodoro
     }
+
+    // MARK: - Session Tracking
+    let sessionStore = SessionStore()
+    var pendingSession: PomodoroSession?
+    var workSessionStartTime: Date?
+    var currentPhotoSessionPath: String?
 
     // MARK: - Onboarding
     @Published var isOnboardingComplete: Bool {
@@ -70,13 +78,50 @@ class AppState: ObservableObject {
         currentScreen = .pomodoro
     }
 
+    func startWorkSession() {
+        workSessionStartTime = Date()
+    }
+
     func triggerExerciseBreak() {
+        // Guard: Don't trigger if already showing
+        guard !showExerciseOverlay else {
+            print("[AppState] Exercise overlay already showing, ignoring duplicate trigger")
+            return
+        }
         showExerciseOverlay = true
     }
 
     func completeExercise() {
+        print("[AppState] completeExercise() called, setting showExerciseOverlay = false")
         showExerciseOverlay = false
         totalSessionsCompleted += 1
+
+        // Create session record for journaling later
+        if let startTime = workSessionStartTime {
+            let session = PomodoroSession(
+                startTime: startTime,
+                endTime: Date(),
+                exerciseType: exerciseType,
+                photoSessionPath: currentPhotoSessionPath
+            )
+            pendingSession = session
+
+            // Delay showing journal sheet to allow exercise window to fully dismiss
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.showJournalSheet = true
+            }
+        }
+
+        workSessionStartTime = nil
+        currentPhotoSessionPath = nil
+    }
+
+    func saveJournalEntry(_ entry: String?) {
+        if var session = pendingSession {
+            session.journalEntry = entry
+            sessionStore.addSession(session)
+        }
+        pendingSession = nil
     }
 
     func resetOnboarding() {

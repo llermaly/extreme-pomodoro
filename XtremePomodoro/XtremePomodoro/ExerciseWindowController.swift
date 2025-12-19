@@ -14,6 +14,12 @@ class ExerciseWindowController: NSObject, ObservableObject {
 
     /// Show the fullscreen exercise overlay
     func showExerciseWindow(appState: AppState) {
+        // Guard: Don't show if already showing
+        guard window == nil else {
+            print("[ExerciseWindow] Already showing, ignoring duplicate show request")
+            return
+        }
+
         self.appState = appState
 
         // Create the SwiftUI view
@@ -71,6 +77,14 @@ class ExerciseWindowController: NSObject, ObservableObject {
 
     /// Dismiss the exercise window
     func dismissExerciseWindow() {
+        // Guard: Don't dismiss if not showing
+        guard window != nil else {
+            print("[ExerciseWindow] No window to dismiss")
+            return
+        }
+
+        print("[ExerciseWindow] Dismissing exercise window")
+
         // Restore normal presentation
         NSApp.presentationOptions = []
 
@@ -90,25 +104,42 @@ class ExerciseWindowController: NSObject, ObservableObject {
 
     // MARK: - Keyboard Monitoring
 
-    private var keyMonitor: Any?
+    private var localKeyMonitor: Any?
+    private var globalKeyMonitor: Any?
 
     private func setupKeyboardMonitor() {
-        // Monitor for Cmd+Q to allow emergency exit
-        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            // Check for Cmd+Q
+        // Local monitor for when app is active
+        localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if event.modifierFlags.contains(.command) && event.charactersIgnoringModifiers == "q" {
-                // Show confirmation alert
                 self?.showQuitConfirmation()
-                return nil // Consume the event
+                return nil
+            }
+            // Also allow Escape key as emergency exit
+            if event.keyCode == 53 { // Escape key
+                self?.showQuitConfirmation()
+                return nil
             }
             return event
+        }
+
+        // Global monitor as backup
+        globalKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if event.modifierFlags.contains(.command) && event.charactersIgnoringModifiers == "q" {
+                DispatchQueue.main.async {
+                    self?.showQuitConfirmation()
+                }
+            }
         }
     }
 
     private func removeKeyboardMonitor() {
-        if let monitor = keyMonitor {
+        if let monitor = localKeyMonitor {
             NSEvent.removeMonitor(monitor)
-            keyMonitor = nil
+            localKeyMonitor = nil
+        }
+        if let monitor = globalKeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            globalKeyMonitor = nil
         }
     }
 

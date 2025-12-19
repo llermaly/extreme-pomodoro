@@ -172,8 +172,6 @@ struct AdvancedSettingsView: View {
                                     .font(.caption)
                                 Text("Rep Count: \(poseDetector.exerciseCount)")
                                     .font(.caption)
-                                Text("Last Score: \(poseDetector.lastRepScore)%")
-                                    .font(.caption)
 
                                 if let pose = poseDetector.currentPose, let hipY = pose.hipY {
                                     Text("Current Hip Y: \(String(format: "%.3f", hipY))")

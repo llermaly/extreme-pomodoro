@@ -12,6 +12,7 @@ struct ExerciseOverlayView: View {
     @State private var isSettingUp = true
     @State private var hasAnnouncedCompletion = false
     @State private var showDebugInfo = false
+    @State private var hasSetupCompleted = false
 
     var repsRequired: Int { appState.repsRequired }
     var repsCompleted: Int { poseDetector.exerciseCount }
@@ -146,21 +147,6 @@ struct ExerciseOverlayView: View {
                             }
                         }
 
-                        // Last rep score
-                        if poseDetector.lastRepScore > 0 {
-                            Divider()
-                                .frame(height: 20)
-                                .background(Color.gray)
-
-                            HStack(spacing: 4) {
-                                Text("Last:")
-                                    .foregroundColor(.gray)
-                                Text("\(poseDetector.lastRepScore)%")
-                                    .fontWeight(.bold)
-                                    .foregroundColor(scoreColor(poseDetector.lastRepScore))
-                            }
-                        }
-
                         // 3D mode info
                         if poseDetector.detectionMode == .mode3D && poseDetector.isPersonDetected {
                             Divider()
@@ -291,11 +277,23 @@ struct ExerciseOverlayView: View {
                 #if DEBUG
                 VStack(spacing: 12) {
                     HStack {
-                        Button(action: { completeExercise() }) {
+                        Button(action: {
+                            print("[ExerciseOverlay] Skip button pressed")
+                            completeExercise()
+                        }) {
                             Label("Skip", systemImage: "forward.end.fill")
                         }
                         .buttonStyle(.bordered)
                         .tint(.orange)
+
+                        Button(action: {
+                            print("[ExerciseOverlay] Fake Rep button pressed")
+                            poseDetector.addFakeRep()
+                        }) {
+                            Label("+1 Rep", systemImage: "plus.circle.fill")
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.green)
 
                         if !cameraCapture.isCapturing {
                             Button(action: { startCamera() }) {
@@ -335,6 +333,13 @@ struct ExerciseOverlayView: View {
     }
 
     private func setupExercise() {
+        // Guard: Don't setup twice
+        guard !hasSetupCompleted else {
+            print("[ExerciseOverlay] Setup already completed, ignoring duplicate onAppear")
+            return
+        }
+        hasSetupCompleted = true
+
         isSettingUp = true
         hasAnnouncedCompletion = false
 
@@ -361,12 +366,13 @@ struct ExerciseOverlayView: View {
             photoManager.capturePhoto(image: image, repNumber: repNumber, position: pos)
         }
 
-        poseDetector.onRepCompleted = { [weak photoManager] repNumber, score in
-            photoManager?.updateScore(forRep: repNumber, score: score)
+        poseDetector.onRepCompleted = { repNumber in
+            // Rep completed callback - photo already captured via onCapturePhoto
         }
 
-        // Start photo session
+        // Start photo session and record path for session tracking
         photoManager.startSession()
+        appState.currentPhotoSessionPath = photoManager.sessionPath
 
         // Start camera with slight delay to ensure view is ready
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -382,7 +388,9 @@ struct ExerciseOverlayView: View {
     }
 
     private func completeExercise() {
+        // Stop camera first
         cameraCapture.stopCapture()
+        // Just update state - the onChange handler in XtremePomodoroApp will dismiss the window
         appState.completeExercise()
     }
 
@@ -393,15 +401,6 @@ struct ExerciseOverlayView: View {
         case .holdingSit: return .yellow
         case .sitting: return .blue
         case .goingUp: return .purple
-        }
-    }
-
-    private func scoreColor(_ score: Int) -> Color {
-        switch score {
-        case 90...100: return .green
-        case 70..<90: return .blue
-        case 50..<70: return .orange
-        default: return .red
         }
     }
 

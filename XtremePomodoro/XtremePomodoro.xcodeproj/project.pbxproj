@@ -24,6 +24,12 @@
 		AAA000013A /* ExerciseWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA00002F /* ExerciseWindowController.swift */; };
 		BBB000001 /* TTSService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB000010 /* TTSService.swift */; };
 		BBB000002 /* SpeechRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB000011 /* SpeechRecognitionService.swift */; };
+		CCC000001 /* PomodoroSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC000010 /* PomodoroSession.swift */; };
+		CCC000002 /* JournalEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC000011 /* JournalEntrySheet.swift */; };
+		CCC000004 /* DaySessionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC000013 /* DaySessionsView.swift */; };
+		CCC000005 /* SessionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC000014 /* SessionDetailView.swift */; };
+		CCC000006 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC000015 /* MenuBarController.swift */; };
+		CCC000007 /* ScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC000016 /* ScheduleView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -60,6 +66,13 @@
 		AAA00002F /* ExerciseWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseWindowController.swift; sourceTree = "<group>"; };
 		BBB000010 /* TTSService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTSService.swift; sourceTree = "<group>"; };
 		BBB000011 /* SpeechRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionService.swift; sourceTree = "<group>"; };
+		CCC000010 /* PomodoroSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroSession.swift; sourceTree = "<group>"; };
+		CCC000011 /* JournalEntrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntrySheet.swift; sourceTree = "<group>"; };
+		CCC000012 /* WeeklyScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyScheduleView.swift; sourceTree = "<group>"; };
+		CCC000013 /* DaySessionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaySessionsView.swift; sourceTree = "<group>"; };
+		CCC000014 /* SessionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDetailView.swift; sourceTree = "<group>"; };
+		CCC000015 /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
+		CCC000016 /* ScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +112,13 @@
 				AAA000025 /* PoseDetector.swift */,
 				AAA000026 /* SessionPhotoManager.swift */,
 				AAA000027 /* SessionGalleryView.swift */,
+				CCC000010 /* PomodoroSession.swift */,
+				CCC000011 /* JournalEntrySheet.swift */,
+				CCC000012 /* WeeklyScheduleView.swift */,
+				CCC000013 /* DaySessionsView.swift */,
+				CCC000014 /* SessionDetailView.swift */,
+				CCC000015 /* MenuBarController.swift */,
+				CCC000016 /* ScheduleView.swift */,
 				AAA000012 /* Assets.xcassets */,
 				AAA000021 /* Info.plist */,
 				AAA000022 /* XtremePomodoro.entitlements */,
@@ -212,6 +232,12 @@
 				AAA00000B /* SessionGalleryView.swift in Sources */,
 				BBB000001 /* TTSService.swift in Sources */,
 				BBB000002 /* SpeechRecognitionService.swift in Sources */,
+				CCC000001 /* PomodoroSession.swift in Sources */,
+				CCC000002 /* JournalEntrySheet.swift in Sources */,
+				CCC000004 /* DaySessionsView.swift in Sources */,
+				CCC000005 /* SessionDetailView.swift in Sources */,
+				CCC000006 /* MenuBarController.swift in Sources */,
+				CCC000007 /* ScheduleView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

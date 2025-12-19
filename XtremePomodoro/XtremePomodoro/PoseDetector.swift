@@ -184,13 +184,9 @@ class PoseDetector: ObservableObject {
     private let sittingHoldDuration: TimeInterval = 0.3
     private let hysteresisPercent: CGFloat = 0.85
 
-    private var lowestHipYInRep: CGFloat = 1.0
-    private var highestHipYInRep: CGFloat = 0.0
-    @Published var lastRepScore: Int = 0
-    @Published var repScores: [Int] = []
     private var sittingPhotoCaptured: Bool = false
 
-    var onRepCompleted: ((Int, Int) -> Void)?
+    var onRepCompleted: ((Int) -> Void)?
     var ttsService: TTSService = NativeTTSService()
     var onCapturePhoto: ((Int, String) -> Void)?
 
@@ -634,7 +630,7 @@ class PoseDetector: ObservableObject {
     }
 
     private func trackSitToStand(_ pose: DetectedPose) {
-        guard isCalibrated, let currentHipY = pose.hipY else { return }
+        guard isCalibrated else { return }
 
         let inSittingZone = isInSittingZone(pose)
         let inStandingZone = isInStandingZone(pose)
@@ -644,14 +640,10 @@ class PoseDetector: ObservableObject {
             if !inStandingZone {
                 exerciseState = .goingDown
                 sittingStartTime = nil
-                lowestHipYInRep = currentHipY
-                highestHipYInRep = currentHipY
                 sittingPhotoCaptured = false
             }
 
         case .goingDown:
-            lowestHipYInRep = min(lowestHipYInRep, currentHipY)
-
             if inSittingZone {
                 exerciseState = .holdingSit
                 sittingStartTime = Date()
@@ -661,8 +653,6 @@ class PoseDetector: ObservableObject {
             }
 
         case .holdingSit:
-            lowestHipYInRep = min(lowestHipYInRep, currentHipY)
-
             if inSittingZone {
                 if let startTime = sittingStartTime,
                    Date().timeIntervalSince(startTime) >= sittingHoldDuration {
@@ -679,27 +669,18 @@ class PoseDetector: ObservableObject {
             }
 
         case .sitting:
-            lowestHipYInRep = min(lowestHipYInRep, currentHipY)
-
             if !inSittingZone {
                 exerciseState = .goingUp
-                highestHipYInRep = currentHipY
             }
 
         case .goingUp:
-            highestHipYInRep = max(highestHipYInRep, currentHipY)
-
             if inStandingZone {
-                let score = calculateRepScore()
-
                 exerciseCount += 1
-                lastRepScore = score
-                repScores.append(score)
 
-                speak("\(exerciseCount), \(score) percent")
+                speak("\(exerciseCount)")
 
                 onCapturePhoto?(exerciseCount, "standing")
-                onRepCompleted?(exerciseCount, score)
+                onRepCompleted?(exerciseCount)
 
                 exerciseState = .standing
                 sittingStartTime = nil
@@ -708,20 +689,6 @@ class PoseDetector: ObservableObject {
                 sittingStartTime = Date()
             }
         }
-    }
-
-    private func calculateRepScore() -> Int {
-        let range = standingHipY - sittingHipY
-        guard range > 0 else { return 0 }
-
-        let sittingDeviation = lowestHipYInRep - sittingHipY
-        let sittingScore = max(0, 1 - (sittingDeviation / range))
-
-        let standingDeviation = standingHipY - highestHipYInRep
-        let standingScore = max(0, 1 - (standingDeviation / range))
-
-        let totalScore = ((sittingScore + standingScore) / 2) * 100
-        return Int(min(100, max(0, totalScore)))
     }
 
     private func trackSimpleExercise(_ pose: DetectedPose) {
@@ -751,12 +718,17 @@ class PoseDetector: ObservableObject {
         lastPoseState = false
         exerciseState = .standing
         sittingStartTime = nil
-        lastRepScore = 0
-        repScores.removeAll()
-        lowestHipYInRep = 1.0
-        highestHipYInRep = 0.0
         sittingPhotoCaptured = false
     }
+
+    #if DEBUG
+    /// Debug method to add a fake rep for testing
+    func addFakeRep() {
+        exerciseCount += 1
+        speak("\(exerciseCount)")
+        onRepCompleted?(exerciseCount)
+    }
+    #endif
 
     func setExercise(_ exercise: ExerciseType) {
         currentExercise = exercise
