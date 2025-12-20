@@ -13,7 +13,7 @@ struct XtremePomodoroApp: App {
                 .environmentObject(pomodoroTimer)
                 .onAppear {
                     setupTimerCallbacks()
-                    MenuBarController.shared.setup(timer: pomodoroTimer)
+                    MenuBarController.shared.setup(timer: pomodoroTimer, appState: appState)
                     requestCameraPermissionIfNeeded()
                 }
                 .onChange(of: appState.showExerciseOverlay) { _, showExercise in
@@ -93,18 +93,15 @@ struct MainAppView: View {
             case .pomodoro:
                 PomodoroView(timer: pomodoroTimer)
                     .transition(.opacity)
-            }
 
-            // Note: Exercise overlay is now shown in separate fullscreen window
-            // managed by ExerciseWindowController
+            case .schedule:
+                ScheduleView()
+                    .transition(.opacity)
+            }
         }
         .animation(.easeInOut(duration: 0.3), value: appState.currentScreen)
         .sheet(isPresented: $appState.showAdvancedSettings) {
             AdvancedSettingsView()
-        }
-        .sheet(isPresented: $appState.showSchedule) {
-            ScheduleView(sessionStore: appState.sessionStore)
-                .frame(minWidth: 500, minHeight: 600)
         }
         .sheet(isPresented: $appState.showJournalSheet) {
             if let session = appState.pendingSession {

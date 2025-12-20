@@ -1,10 +1,11 @@
 import SwiftUI
 
-/// View showing all sessions for a specific day with square blocks
+/// View showing all sessions for a specific day with Liquid Glass styled blocks
 struct DaySessionsView: View {
     let date: Date
     @ObservedObject var sessionStore: SessionStore
     @Binding var navigationPath: NavigationPath
+    @Namespace private var glassNamespace
 
     private let calendar = Calendar.current
 
@@ -14,32 +15,8 @@ struct DaySessionsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                Button(action: { navigationPath.removeLast() }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
-                    }
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(.blue)
-
-                Spacer()
-
-                Text(dateTitle)
-                    .font(.headline)
-
-                Spacer()
-
-                // Placeholder for symmetry
-                HStack(spacing: 4) {
-                    Image(systemName: "chevron.left")
-                    Text("Back")
-                }
-                .opacity(0)
-            }
-            .padding()
+            // Header with glass navigation
+            headerView
 
             Divider()
 
@@ -47,15 +24,15 @@ struct DaySessionsView: View {
                 emptyState
             } else {
                 ScrollView {
-                    // Grid of session blocks
+                    // Grid of session blocks with glass effects
                     LazyVGrid(columns: [
                         GridItem(.flexible()),
                         GridItem(.flexible()),
                         GridItem(.flexible()),
                         GridItem(.flexible())
-                    ], spacing: 16) {
+                    ], spacing: Constants.sessionGridSpacing) {
                         ForEach(sessions) { session in
-                            SessionSquare(session: session) {
+                            SessionSquare(session: session, glassNamespace: glassNamespace) {
                                 navigationPath.append(session)
                             }
                         }
@@ -67,21 +44,57 @@ struct DaySessionsView: View {
         .navigationBarBackButtonHidden(true)
     }
 
+    // MARK: - Header
+
+    private var headerView: some View {
+        HStack {
+            Button(action: { navigationPath.removeLast() }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.left")
+                    Text("Back")
+                }
+            }
+            .buttonStyle(.glass)
+            .glassEffectID("backButton", in: glassNamespace)
+
+            Spacer()
+
+            Text(dateTitle)
+                .font(.headline)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .glassEffect(.regular, in: .capsule)
+                .glassEffectID("dateTitle", in: glassNamespace)
+
+            Spacer()
+
+            // Placeholder for symmetry
+            HStack(spacing: 4) {
+                Image(systemName: "chevron.left")
+                Text("Back")
+            }
+            .opacity(0)
+        }
+        .padding()
+    }
+
+    // MARK: - Empty State
+
     private var emptyState: some View {
         VStack(spacing: 16) {
             Spacer()
 
             Image(systemName: "square.grid.2x2")
                 .font(.system(size: 48))
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
 
             Text("No sessions this day")
                 .font(.headline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
 
             Text("Complete pomodoro sessions to see them here")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
 
             Spacer()
@@ -103,9 +116,10 @@ struct DaySessionsView: View {
     }
 }
 
-/// A square block representing a single session
+/// A square block representing a single session with Liquid Glass styling
 struct SessionSquare: View {
     let session: PomodoroSession
+    var glassNamespace: Namespace.ID
     let onTap: () -> Void
 
     var body: some View {
@@ -115,28 +129,35 @@ struct SessionSquare: View {
                 Text(timeRange)
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.white.opacity(0.9))
+                    .foregroundStyle(.primary.opacity(0.9))
 
-                // Duration
+                // Duration - primary focus
                 Text("\(session.durationMinutes)")
                     .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundStyle(.primary)
 
                 Text("min")
                     .font(.caption2)
-                    .foregroundColor(.white.opacity(0.7))
+                    .foregroundStyle(.secondary)
 
                 // Exercise icon
                 Image(systemName: exerciseIcon)
                     .font(.caption)
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundStyle(statusColor)
             }
-            .frame(width: 100, height: 100)
-            .background(statusColor)
-            .cornerRadius(16)
-            .shadow(color: statusColor.opacity(0.3), radius: 4, x: 0, y: 2)
+            .frame(width: Constants.sessionItemSize, height: Constants.sessionItemSize)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.glass)
+        .glassEffect(.regular, in: .rect(cornerRadius: Constants.sessionItemCornerRadius))
+        .glassEffectID("session-\(session.id)", in: glassNamespace)
+        .overlay(
+            // Subtle status indicator at corner
+            Circle()
+                .fill(statusColor)
+                .frame(width: 10, height: 10)
+                .padding(8),
+            alignment: .topTrailing
+        )
     }
 
     private var timeRange: String {
@@ -148,11 +169,11 @@ struct SessionSquare: View {
     private var statusColor: Color {
         switch session.status {
         case .completed:
-            return .green
+            return Color.breakAccent
         case .cancelled:
             return .red
         case .inProgress:
-            return .gray
+            return .secondary
         }
     }
 

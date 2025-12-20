@@ -1,185 +1,273 @@
 import SwiftUI
 
-/// Main Pomodoro timer screen
+/// Main Pomodoro timer screen with Liquid Glass styling
 struct PomodoroView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var timer: PomodoroTimer
+    @Namespace private var glassNamespace
 
     var body: some View {
         ZStack {
-            // Background
-            Color(NSColor.windowBackgroundColor)
-                .ignoresSafeArea()
+            // Content layer - the background that shines through glass
+            backgroundLayer
 
-            VStack(spacing: 30) {
-                // Header with settings
-                HStack {
-                    Text("XtremePomodoro")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-
-                    Spacer()
-
-                    Button(action: { appState.showSchedule = true }) {
-                        Image(systemName: "calendar")
-                            .font(.title2)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Session History")
-
-                    Button(action: { appState.showSettings = true }) {
-                        Image(systemName: "gear")
-                            .font(.title2)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Settings")
-                }
-                .padding(.horizontal)
+            VStack(spacing: Constants.standardPadding) {
+                // Glass toolbar floating above content
+                toolbarView
 
                 Spacer()
 
                 // Session type indicator
-                Text(timer.sessionType.label)
-                    .font(.title2)
-                    .fontWeight(.medium)
-                    .foregroundColor(timer.sessionType == .work ? .blue : .green)
+                sessionTypeLabel
 
                 // Timer display with circular progress
-                ZStack {
-                    // Background circle
-                    Circle()
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 12)
-                        .frame(width: 280, height: 280)
+                timerDisplay
 
-                    // Progress circle
-                    Circle()
-                        .trim(from: 0, to: timer.progress)
-                        .stroke(
-                            timer.sessionType == .work ? Color.blue : Color.green,
-                            style: StrokeStyle(lineWidth: 12, lineCap: .round)
-                        )
-                        .frame(width: 280, height: 280)
-                        .rotationEffect(.degrees(-90))
-                        .animation(.linear(duration: 1), value: timer.progress)
-
-                    // Time display
-                    VStack(spacing: 4) {
-                        Text(timer.timeString)
-                            .font(.system(size: 72, weight: .light, design: .rounded))
-                            .monospacedDigit()
-
-                        if timer.timerState == .paused {
-                            Text("PAUSED")
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                                .fontWeight(.bold)
-                        }
-                    }
-                }
-
-                // Control buttons
-                HStack(spacing: 20) {
-                    if timer.timerState == .idle {
-                        Button(action: { timer.startWorkSession() }) {
-                            Label("Start", systemImage: "play.fill")
-                                .frame(width: 120)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-                    } else {
-                        Button(action: { timer.togglePause() }) {
-                            Label(
-                                timer.timerState == .running ? "Pause" : "Resume",
-                                systemImage: timer.timerState == .running ? "pause.fill" : "play.fill"
-                            )
-                            .frame(width: 120)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
-
-                        Button(action: { timer.reset() }) {
-                            Label("Reset", systemImage: "stop.fill")
-                                .frame(width: 100)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.large)
-                    }
-                }
+                // Control buttons with glass effect
+                controlButtons
 
                 // Skip Break button (only visible during break time)
                 if timer.sessionType == .breakTime && timer.timerState != .idle {
-                    Button(action: { timer.reset() }) {
-                        Label("Skip Break", systemImage: "forward.end.fill")
-                            .frame(width: 140)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
-                    .padding(.top, 10)
+                    skipBreakButton
                 }
 
                 Spacer()
 
-                // Stats
-                HStack(spacing: 30) {
-                    VStack {
-                        Text("\(appState.totalSessionsCompleted)")
-                            .font(.title)
-                            .fontWeight(.bold)
-                        Text("Sessions")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Divider()
-                        .frame(height: 40)
-
-                    VStack {
-                        Text("\(appState.workDuration)m")
-                            .font(.title)
-                            .fontWeight(.bold)
-                        Text("Work")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Divider()
-                        .frame(height: 40)
-
-                    VStack {
-                        Text("\(appState.repsRequired)")
-                            .font(.title)
-                            .fontWeight(.bold)
-                        Text("Reps")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(12)
+                // Stats bar with glass effect
+                statsBar
 
                 // DEBUG: Skip button for testing
                 #if DEBUG
-                Button(action: {
-                    if timer.timerState == .idle {
-                        timer.startWorkSession()
-                    }
-                    timer.skipToEnd()
-                }) {
-                    Label("DEBUG: Skip to Break", systemImage: "forward.end.fill")
-                }
-                .buttonStyle(.bordered)
-                .tint(.orange)
-                .padding(.top, 10)
+                debugControls
                 #endif
             }
-            .padding(30)
+            .padding(Constants.safeAreaPadding)
         }
         .frame(minWidth: 400, minHeight: 500)
         .sheet(isPresented: $appState.showSettings) {
             SettingsView()
                 .environmentObject(appState)
         }
+    }
+
+    // MARK: - Background Layer
+
+    private var backgroundLayer: some View {
+        ZStack {
+            // Base background
+            Color(NSColor.windowBackgroundColor)
+                .ignoresSafeArea()
+
+            // Subtle gradient for depth
+            RadialGradient(
+                colors: [
+                    timer.sessionType == .work
+                        ? Color.workAccent.opacity(0.08)
+                        : Color.breakAccent.opacity(0.08),
+                    Color.clear
+                ],
+                center: .center,
+                startRadius: 50,
+                endRadius: 300
+            )
+            .ignoresSafeArea()
+        }
+    }
+
+    // MARK: - Toolbar (Glass floating layer)
+
+    private var toolbarView: some View {
+        HStack {
+            Text("XtremePomodoro")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+
+            Spacer()
+
+            // Toolbar buttons grouped together with glass effect
+            GlassEffectContainer(spacing: Constants.glassSpacing) {
+                HStack(spacing: Constants.headerSpacing) {
+                    Button(action: { appState.showScheduleView() }) {
+                        Image(systemName: "calendar")
+                            .font(.title2)
+                            .frame(width: Constants.headerIconSize, height: Constants.headerIconSize)
+                    }
+                    .buttonStyle(.glass)
+                    .glassEffectID("calendar", in: glassNamespace)
+                    .help("Today's Progress")
+
+                    Button(action: { appState.showSettings = true }) {
+                        Image(systemName: "gear")
+                            .font(.title2)
+                            .frame(width: Constants.headerIconSize, height: Constants.headerIconSize)
+                    }
+                    .buttonStyle(.glass)
+                    .glassEffectID("settings", in: glassNamespace)
+                    .help("Settings")
+                }
+            }
+        }
+        .padding(.horizontal)
+    }
+
+    // MARK: - Session Type Label
+
+    private var sessionTypeLabel: some View {
+        Text(timer.sessionType.label)
+            .font(.title2)
+            .fontWeight(.medium)
+            // Color used here to indicate session type - key information
+            .foregroundStyle(timer.sessionType == .work ? Color.workAccent : Color.breakAccent)
+    }
+
+    // MARK: - Timer Display
+
+    private var timerDisplay: some View {
+        ZStack {
+            // Background circle with glass effect
+            Circle()
+                .fill(Color.glassBackground)
+                .frame(width: Constants.timerSize, height: Constants.timerSize)
+                .glassEffect(.regular, in: .circle)
+                .glassEffectID("timerBackground", in: glassNamespace)
+
+            // Progress circle - color indicates session type
+            Circle()
+                .trim(from: 0, to: timer.progress)
+                .stroke(
+                    timer.sessionType == .work ? Color.workAccent : Color.breakAccent,
+                    style: StrokeStyle(lineWidth: Constants.timerStrokeWidth, lineCap: .round)
+                )
+                .frame(width: Constants.timerSize, height: Constants.timerSize)
+                .rotationEffect(.degrees(-90))
+                .animation(.linear(duration: 1), value: timer.progress)
+
+            // Time display
+            VStack(spacing: 4) {
+                Text(timer.timeString)
+                    .font(.system(size: Constants.timerFontSize, weight: .light, design: .rounded))
+                    .monospacedDigit()
+
+                if timer.timerState == .paused {
+                    Text("PAUSED")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                        .fontWeight(.bold)
+                }
+            }
+        }
+    }
+
+    // MARK: - Control Buttons
+
+    private var controlButtons: some View {
+        GlassEffectContainer(spacing: Constants.glassSpacing) {
+            HStack(spacing: Constants.buttonSpacing) {
+                if timer.timerState == .idle {
+                    // Primary action - uses color to draw attention
+                    Button(action: { timer.startWorkSession() }) {
+                        Label("Start", systemImage: "play.fill")
+                            .frame(width: Constants.primaryButtonWidth)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .glassEffectID("startButton", in: glassNamespace)
+                    .controlSize(.large)
+                } else {
+                    Button(action: { timer.togglePause() }) {
+                        Label(
+                            timer.timerState == .running ? "Pause" : "Resume",
+                            systemImage: timer.timerState == .running ? "pause.fill" : "play.fill"
+                        )
+                        .frame(width: Constants.primaryButtonWidth)
+                    }
+                    .buttonStyle(.glass)
+                    .glassEffect(.regular.interactive(), in: .capsule)
+                    .glassEffectID("pauseButton", in: glassNamespace)
+                    .controlSize(.large)
+
+                    Button(action: { timer.reset() }) {
+                        Label("Reset", systemImage: "stop.fill")
+                            .frame(width: Constants.secondaryButtonWidth)
+                    }
+                    .buttonStyle(.glass)
+                    .glassEffect(.regular.interactive(), in: .capsule)
+                    .glassEffectID("resetButton", in: glassNamespace)
+                    .controlSize(.large)
+                }
+            }
+        }
+    }
+
+    // MARK: - Skip Break Button
+
+    private var skipBreakButton: some View {
+        Button(action: { timer.reset() }) {
+            Label("Skip Break", systemImage: "forward.end.fill")
+                .frame(width: 140)
+        }
+        .buttonStyle(.glass)
+        .glassEffect(.regular.interactive(), in: .capsule)
+        .glassEffectID("skipBreak", in: glassNamespace)
+        .controlSize(.large)
+        .padding(.top, 10)
+    }
+
+    // MARK: - Stats Bar
+
+    private var statsBar: some View {
+        HStack(spacing: Constants.safeAreaPadding) {
+            StatItem(value: "\(appState.totalSessionsCompleted)", label: "Sessions")
+            StatDivider()
+            StatItem(value: "\(appState.workDuration)m", label: "Work")
+            StatDivider()
+            StatItem(value: "\(appState.repsRequired)", label: "Reps")
+        }
+        .padding(Constants.statBarPadding)
+        .glassEffect(.regular, in: .rect(cornerRadius: Constants.statBarCornerRadius))
+        .glassEffectID("statsBar", in: glassNamespace)
+    }
+
+    // MARK: - Debug Controls
+
+    #if DEBUG
+    private var debugControls: some View {
+        Button(action: {
+            if timer.timerState == .idle {
+                timer.startWorkSession()
+            }
+            timer.skipToEnd()
+        }) {
+            Label("DEBUG: Skip to Break", systemImage: "forward.end.fill")
+        }
+        .buttonStyle(.bordered)
+        .tint(.orange)
+        .padding(.top, 10)
+    }
+    #endif
+}
+
+// MARK: - Supporting Views
+
+private struct StatItem: View {
+    let value: String
+    let label: String
+
+    var body: some View {
+        VStack {
+            Text(value)
+                .font(.title)
+                .fontWeight(.bold)
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+private struct StatDivider: View {
+    var body: some View {
+        Divider()
+            .frame(height: 40)
     }
 }
 

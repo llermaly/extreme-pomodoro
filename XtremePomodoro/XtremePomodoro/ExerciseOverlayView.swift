@@ -1,7 +1,7 @@
 import SwiftUI
 import AVFoundation
 
-/// Fullscreen exercise overlay that blocks the screen during breaks
+/// Fullscreen exercise overlay with Liquid Glass styling
 struct ExerciseOverlayView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var cameraCapture = CameraCapture()
@@ -13,6 +13,7 @@ struct ExerciseOverlayView: View {
     @State private var hasAnnouncedCompletion = false
     @State private var showDebugInfo = false
     @State private var hasSetupCompleted = false
+    @Namespace private var glassNamespace
 
     var repsRequired: Int { appState.repsRequired }
     var repsCompleted: Int { poseDetector.exerciseCount }
@@ -20,300 +21,30 @@ struct ExerciseOverlayView: View {
 
     var body: some View {
         ZStack {
-            // Dark background
-            Color.black.opacity(0.95)
-                .ignoresSafeArea()
+            // Background layer - subtle gradient that shines through glass
+            backgroundLayer
 
-            VStack(spacing: 20) {
-                // Header
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Break Time!")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
+            VStack(spacing: Constants.standardPadding) {
+                // Header with glass effect
+                headerView
+                    .padding(.horizontal, 40)
+                    .padding(.top, 20)
 
-                        Text("Complete your exercises to continue working")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    }
+                // Camera preview - main content layer
+                cameraPreviewLayer
 
-                    Spacer()
+                // Status bar with glass effect
+                statusBarView
+                    .padding(.horizontal, 40)
 
-                    // Rep progress
-                    HStack(spacing: 8) {
-                        Text("\(repsCompleted)")
-                            .font(.system(size: 48, weight: .bold, design: .rounded))
-                            .foregroundColor(isComplete ? .green : .white)
-
-                        Text("/ \(repsRequired)")
-                            .font(.title)
-                            .foregroundColor(.gray)
-                    }
-                }
-                .padding(.horizontal, 40)
-                .padding(.top, 20)
-
-                // Camera preview
-                ZStack {
-                    if cameraCapture.isCapturing {
-                        ZStack {
-                            CameraPreviewView(cameraCapture: cameraCapture)
-
-                            if showPoseOverlay {
-                                PoseOverlayView(pose: poseDetector.currentPose, imageSize: CGSize(width: 800, height: 600))
-                            }
-                        }
-                        .frame(maxWidth: 800, maxHeight: 600)
-                        .cornerRadius(16)
-                    } else {
-                        // Camera not running - show placeholder with start button
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(maxWidth: 800, maxHeight: 600)
-                            .overlay(
-                                VStack(spacing: 20) {
-                                    if isSettingUp {
-                                        ProgressView()
-                                            .scaleEffect(2)
-                                            .tint(.white)
-                                        Text("Starting camera...")
-                                            .font(.title2)
-                                            .foregroundColor(.white)
-                                    } else {
-                                        Image(systemName: "camera.fill")
-                                            .font(.system(size: 60))
-                                            .foregroundColor(.gray)
-
-                                        Text("Camera is off")
-                                            .font(.title2)
-                                            .foregroundColor(.white)
-
-                                        Button(action: { startCamera() }) {
-                                            Label("Start Camera", systemImage: "camera")
-                                                .font(.title3)
-                                                .padding()
-                                        }
-                                        .buttonStyle(.borderedProminent)
-                                        .tint(.blue)
-                                    }
-                                }
-                            )
-                    }
-                }
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(isComplete ? Color.green : Color.blue, lineWidth: 4)
-                )
-
-                // Status bar
-                HStack(spacing: 30) {
-                    // Camera status
-                    HStack {
-                        Circle()
-                            .fill(cameraCapture.isCapturing ? Color.green : Color.red)
-                            .frame(width: 12, height: 12)
-                        Text(cameraCapture.isCapturing ? "Camera on" : "Camera off")
-                            .foregroundColor(cameraCapture.isCapturing ? .green : .red)
-                    }
-
-                    if cameraCapture.isCapturing {
-                        Divider()
-                            .frame(height: 20)
-                            .background(Color.gray)
-
-                        // Pose status
-                        HStack {
-                            Circle()
-                                .fill(poseDetector.isPersonDetected ? Color.green : Color.orange)
-                                .frame(width: 12, height: 12)
-                            Text(poseDetector.poseDescription)
-                                .foregroundColor(.white)
-                        }
-
-                        // Exercise state (if calibrated)
-                        if poseDetector.currentExercise == .sitToStand && poseDetector.isCalibrated {
-                            Divider()
-                                .frame(height: 20)
-                                .background(Color.gray)
-
-                            HStack {
-                                Circle()
-                                    .fill(stateColor(for: poseDetector.exerciseState))
-                                    .frame(width: 12, height: 12)
-                                Text(poseDetector.exerciseState.rawValue)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(stateColor(for: poseDetector.exerciseState))
-                            }
-                        }
-
-                        // 3D mode info
-                        if poseDetector.detectionMode == .mode3D && poseDetector.isPersonDetected {
-                            Divider()
-                                .frame(height: 20)
-                                .background(Color.gray)
-
-                            HStack(spacing: 8) {
-                                // Body height
-                                HStack(spacing: 2) {
-                                    Image(systemName: "figure.stand")
-                                        .foregroundColor(.cyan)
-                                    Text(poseDetector.bodyHeight)
-                                        .foregroundColor(.cyan)
-                                        .font(.caption)
-                                }
-
-                                // Distance
-                                HStack(spacing: 2) {
-                                    Image(systemName: "arrow.left.and.right")
-                                        .foregroundColor(.cyan)
-                                    Text(poseDetector.cameraDistance)
-                                        .foregroundColor(.cyan)
-                                        .font(.caption)
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer()
-
-                    // Skeleton toggle and mode indicator
-                    if cameraCapture.isCapturing {
-                        HStack(spacing: 8) {
-                            // Mode badge
-                            Text(poseDetector.detectionMode.rawValue)
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(poseDetector.detectionMode == .mode3D ? Color.cyan.opacity(0.3) : Color.green.opacity(0.3))
-                                .foregroundColor(poseDetector.detectionMode == .mode3D ? .cyan : .green)
-                                .cornerRadius(6)
-
-                            Toggle("Skeleton", isOn: $showPoseOverlay)
-                                .toggleStyle(.button)
-                                .tint(.gray)
-                        }
-                    }
-
-                    // Manual camera start if not capturing
-                    if !cameraCapture.isCapturing && !isSettingUp {
-                        Button(action: { startCamera() }) {
-                            Label("Start Camera", systemImage: "camera")
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.blue)
-                    }
-                }
-                .padding(.horizontal, 40)
-
-                // Completion message or instructions
-                if isComplete {
-                    VStack(spacing: 15) {
-                        Text("Great job!")
-                            .font(.title)
-                            .fontWeight(.bold)
-                            .foregroundColor(.green)
-
-                        Button(action: { completeExercise() }) {
-                            Label("Continue Working", systemImage: "arrow.right.circle.fill")
-                                .font(.title2)
-                                .padding()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.green)
-                        .controlSize(.large)
-                    }
-                    .padding(.top, 10)
-                } else if cameraCapture.isCapturing {
-                    // Show instructions based on calibration status
-                    if poseDetector.currentExercise == .sitToStand {
-                        if !poseDetector.isCalibrated {
-                            VStack(spacing: 12) {
-                                Text("Calibration needed for accurate tracking")
-                                    .foregroundColor(.orange)
-
-                                if poseDetector.calibrationState != .notCalibrated &&
-                                   poseDetector.calibrationState != .calibrated {
-                                    Text(poseDetector.calibrationMessage)
-                                        .font(.title2)
-                                        .fontWeight(.medium)
-                                        .foregroundColor(.blue)
-                                        .padding()
-                                        .background(Color.blue.opacity(0.2))
-                                        .cornerRadius(12)
-
-                                    Button("Cancel") {
-                                        poseDetector.cancelCalibration()
-                                    }
-                                    .buttonStyle(.bordered)
-                                    .tint(.red)
-                                } else {
-                                    Button("Calibrate Now") {
-                                        poseDetector.startCalibration()
-                                    }
-                                    .buttonStyle(.borderedProminent)
-                                    .tint(.purple)
-                                    .controlSize(.large)
-                                }
-                            }
-                        } else {
-                            Text("Complete \(repsRequired - repsCompleted) more reps to continue")
-                                .font(.title3)
-                                .fontWeight(.medium)
-                                .foregroundColor(.white.opacity(0.9))
-                        }
-                    } else {
-                        Text("Complete \(repsRequired - repsCompleted) more reps to continue")
-                            .font(.title3)
-                            .fontWeight(.medium)
-                            .foregroundColor(.white.opacity(0.9))
-                    }
-                }
+                // Completion or instructions
+                instructionsView
 
                 Spacer()
 
-                // DEBUG: Skip button and debug info
+                // DEBUG controls
                 #if DEBUG
-                VStack(spacing: 12) {
-                    HStack {
-                        Button(action: {
-                            print("[ExerciseOverlay] Skip button pressed")
-                            completeExercise()
-                        }) {
-                            Label("Skip", systemImage: "forward.end.fill")
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.orange)
-
-                        Button(action: {
-                            print("[ExerciseOverlay] Fake Rep button pressed")
-                            poseDetector.addFakeRep()
-                        }) {
-                            Label("+1 Rep", systemImage: "plus.circle.fill")
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(.green)
-
-                        if !cameraCapture.isCapturing {
-                            Button(action: { startCamera() }) {
-                                Label("Force Camera", systemImage: "camera")
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(.blue)
-                        }
-
-                        Toggle("Debug", isOn: $showDebugInfo)
-                            .toggleStyle(.button)
-                            .tint(.purple)
-                    }
-
-                    // Debug calibration panel
-                    if showDebugInfo {
-                        calibrationDebugView
-                    }
-                }
-                .padding(.bottom, 20)
+                debugControlsView
                 #endif
             }
         }
@@ -326,14 +57,328 @@ struct ExerciseOverlayView: View {
         .onChange(of: isComplete) { oldValue, newValue in
             if newValue && !hasAnnouncedCompletion {
                 hasAnnouncedCompletion = true
-                // Wait for the last rep speech to finish before announcing completion
                 poseDetector.speakAfterCurrent("Great job! All reps complete. Click continue to get back to work.")
             }
         }
     }
 
+    // MARK: - Background Layer
+
+    private var backgroundLayer: some View {
+        ZStack {
+            // Dark base
+            Color.black.opacity(0.95)
+                .ignoresSafeArea()
+
+            // Subtle radial gradient for depth
+            RadialGradient(
+                colors: [
+                    isComplete ? Color.breakAccent.opacity(0.15) : Color.workAccent.opacity(0.08),
+                    Color.clear
+                ],
+                center: .top,
+                startRadius: 100,
+                endRadius: 500
+            )
+            .ignoresSafeArea()
+        }
+    }
+
+    // MARK: - Header View
+
+    private var headerView: some View {
+        HStack {
+            // Title and subtitle
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Break Time!")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+
+                Text("Complete your exercises to continue working")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            // Rep counter with glass effect - primary focus element
+            repCounterView
+        }
+    }
+
+    private var repCounterView: some View {
+        HStack(spacing: 8) {
+            Text("\(repsCompleted)")
+                .font(.system(size: Constants.repCounterFontSize, weight: .bold, design: .rounded))
+                // Color used for completion state - key information
+                .foregroundStyle(isComplete ? Color.breakAccent : .white)
+
+            Text("/ \(repsRequired)")
+                .font(.title)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .glassEffect(.regular, in: .capsule)
+        .glassEffectID("repCounter", in: glassNamespace)
+    }
+
+    // MARK: - Camera Preview
+
+    private var cameraPreviewLayer: some View {
+        ZStack {
+            if cameraCapture.isCapturing {
+                ZStack {
+                    CameraPreviewView(cameraCapture: cameraCapture)
+
+                    if showPoseOverlay {
+                        PoseOverlayView(pose: poseDetector.currentPose, imageSize: CGSize(width: 800, height: 600))
+                    }
+                }
+                .frame(maxWidth: Constants.cameraPreviewMaxWidth, maxHeight: Constants.cameraPreviewMaxHeight)
+                .clipShape(RoundedRectangle(cornerRadius: Constants.cameraPreviewCornerRadius))
+            } else {
+                // Camera not running - placeholder
+                cameraPlaceholder
+            }
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: Constants.cameraPreviewCornerRadius)
+                .strokeBorder(
+                    isComplete ? Color.breakAccent.opacity(0.6) : Color.workAccent.opacity(0.4),
+                    lineWidth: 3
+                )
+        )
+    }
+
+    private var cameraPlaceholder: some View {
+        RoundedRectangle(cornerRadius: Constants.cameraPreviewCornerRadius)
+            .fill(Color.glassBackground)
+            .frame(maxWidth: Constants.cameraPreviewMaxWidth, maxHeight: Constants.cameraPreviewMaxHeight)
+            .overlay(
+                VStack(spacing: 20) {
+                    if isSettingUp {
+                        ProgressView()
+                            .scaleEffect(2)
+                            .tint(.white)
+                        Text("Starting camera...")
+                            .font(.title2)
+                            .foregroundStyle(.white)
+                    } else {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.secondary)
+
+                        Text("Camera is off")
+                            .font(.title2)
+                            .foregroundStyle(.white)
+
+                        Button(action: { startCamera() }) {
+                            Label("Start Camera", systemImage: "camera")
+                                .font(.title3)
+                                .padding()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                }
+            )
+    }
+
+    // MARK: - Status Bar
+
+    private var statusBarView: some View {
+        HStack(spacing: 20) {
+            // Camera status indicator
+            StatusIndicator(
+                isActive: cameraCapture.isCapturing,
+                activeLabel: "Camera on",
+                inactiveLabel: "Camera off",
+                activeColor: .green,
+                inactiveColor: .red
+            )
+            .glassEffect(.regular, in: .capsule)
+            .glassEffectID("cameraStatus", in: glassNamespace)
+
+            if cameraCapture.isCapturing {
+                // Pose status
+                StatusIndicator(
+                    isActive: poseDetector.isPersonDetected,
+                    activeLabel: poseDetector.poseDescription,
+                    inactiveLabel: poseDetector.poseDescription,
+                    activeColor: .green,
+                    inactiveColor: .orange
+                )
+                .glassEffect(.regular, in: .capsule)
+                .glassEffectID("poseStatus", in: glassNamespace)
+
+                // Exercise state (if calibrated)
+                if poseDetector.currentExercise == .sitToStand && poseDetector.isCalibrated {
+                    exerciseStateIndicator
+                }
+
+                // 3D mode info
+                if poseDetector.detectionMode == .mode3D && poseDetector.isPersonDetected {
+                    mode3DInfo
+                }
+            }
+
+            Spacer()
+
+            // Controls group
+            if cameraCapture.isCapturing {
+                controlsGroup
+            } else if !isSettingUp {
+                Button(action: { startCamera() }) {
+                    Label("Start Camera", systemImage: "camera")
+                }
+                .buttonStyle(.glass)
+                .glassEffectID("startCameraBtn", in: glassNamespace)
+            }
+        }
+    }
+
+    private var exerciseStateIndicator: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(stateColor(for: poseDetector.exerciseState))
+                .frame(width: Constants.statusIndicatorSize, height: Constants.statusIndicatorSize)
+            Text(poseDetector.exerciseState.rawValue)
+                .fontWeight(.medium)
+                .foregroundStyle(stateColor(for: poseDetector.exerciseState))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .glassEffect(.regular, in: .capsule)
+        .glassEffectID("exerciseState", in: glassNamespace)
+    }
+
+    private var mode3DInfo: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 4) {
+                Image(systemName: "figure.stand")
+                    .foregroundStyle(.cyan)
+                Text(poseDetector.bodyHeight)
+                    .foregroundStyle(.cyan)
+                    .font(.caption)
+            }
+
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.left.and.right")
+                    .foregroundStyle(.cyan)
+                Text(poseDetector.cameraDistance)
+                    .foregroundStyle(.cyan)
+                    .font(.caption)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .glassEffect(.regular, in: .capsule)
+        .glassEffectID("mode3DInfo", in: glassNamespace)
+    }
+
+    private var controlsGroup: some View {
+        HStack(spacing: 8) {
+            // Mode badge
+            Text(poseDetector.detectionMode.rawValue)
+                .font(.caption)
+                .fontWeight(.bold)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(poseDetector.detectionMode == .mode3D ? Color.cyan.opacity(0.3) : Color.green.opacity(0.3))
+                .foregroundStyle(poseDetector.detectionMode == .mode3D ? .cyan : .green)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+            Toggle("Skeleton", isOn: $showPoseOverlay)
+                .toggleStyle(.button)
+                .buttonStyle(.glass)
+                .glassEffectID("skeletonToggle", in: glassNamespace)
+        }
+    }
+
+    // MARK: - Instructions View
+
+    @ViewBuilder
+    private var instructionsView: some View {
+        if isComplete {
+            completionView
+        } else if cameraCapture.isCapturing {
+            if poseDetector.currentExercise == .sitToStand {
+                if !poseDetector.isCalibrated {
+                    calibrationView
+                } else {
+                    remainingRepsLabel
+                }
+            } else {
+                remainingRepsLabel
+            }
+        }
+    }
+
+    private var completionView: some View {
+        VStack(spacing: 15) {
+            Text("Great job!")
+                .font(.title)
+                .fontWeight(.bold)
+                .foregroundStyle(Color.breakAccent)
+
+            Button(action: { completeExercise() }) {
+                Label("Continue Working", systemImage: "arrow.right.circle.fill")
+                    .font(.title2)
+                    .padding()
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color.breakAccent)
+            .controlSize(.large)
+            .glassEffectID("continueButton", in: glassNamespace)
+        }
+        .padding(.top, 10)
+    }
+
+    private var calibrationView: some View {
+        VStack(spacing: 12) {
+            Text("Calibration needed for accurate tracking")
+                .foregroundStyle(.orange)
+
+            if poseDetector.calibrationState != .notCalibrated &&
+               poseDetector.calibrationState != .calibrated {
+                Text(poseDetector.calibrationMessage)
+                    .font(.title2)
+                    .fontWeight(.medium)
+                    .foregroundStyle(Color.workAccent)
+                    .padding()
+                    .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
+                    .glassEffectID("calibrationMessage", in: glassNamespace)
+
+                Button("Cancel") {
+                    poseDetector.cancelCalibration()
+                }
+                .buttonStyle(.glass)
+                .tint(.red)
+            } else {
+                Button("Calibrate Now") {
+                    poseDetector.startCalibration()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.purple)
+                .controlSize(.large)
+            }
+        }
+    }
+
+    private var remainingRepsLabel: some View {
+        Text("Complete \(repsRequired - repsCompleted) more reps to continue")
+            .font(.title3)
+            .fontWeight(.medium)
+            .foregroundStyle(.white.opacity(0.9))
+            .padding()
+            .glassEffect(.regular, in: .capsule)
+            .glassEffectID("remainingReps", in: glassNamespace)
+    }
+
+    // MARK: - Helper Methods
+
     private func setupExercise() {
-        // Guard: Don't setup twice
         guard !hasSetupCompleted else {
             print("[ExerciseOverlay] Setup already completed, ignoring duplicate onAppear")
             return
@@ -343,7 +388,6 @@ struct ExerciseOverlayView: View {
         isSettingUp = true
         hasAnnouncedCompletion = false
 
-        // Set exercise type from settings
         let exerciseType: PoseDetector.ExerciseType
         switch appState.exerciseType {
         case "sitToStand": exerciseType = .sitToStand
@@ -354,11 +398,9 @@ struct ExerciseOverlayView: View {
         }
         poseDetector.setExercise(exerciseType)
 
-        // Announce break start
         let exerciseName = exerciseType.rawValue
         poseDetector.speakAfterCurrent("Break time! Complete \(appState.repsRequired) \(exerciseName) reps to continue working.")
 
-        // Setup callbacks
         poseDetector.onCapturePhoto = { [weak photoManager] repNumber, position in
             guard let photoManager = photoManager,
                   let image = cameraCapture.capturePhoto() else { return }
@@ -366,15 +408,11 @@ struct ExerciseOverlayView: View {
             photoManager.capturePhoto(image: image, repNumber: repNumber, position: pos)
         }
 
-        poseDetector.onRepCompleted = { repNumber in
-            // Rep completed callback - photo already captured via onCapturePhoto
-        }
+        poseDetector.onRepCompleted = { repNumber in }
 
-        // Start photo session and record path for session tracking
         photoManager.startSession()
         appState.currentPhotoSessionPath = photoManager.sessionPath
 
-        // Start camera with slight delay to ensure view is ready
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             startCamera()
             isSettingUp = false
@@ -388,9 +426,7 @@ struct ExerciseOverlayView: View {
     }
 
     private func completeExercise() {
-        // Stop camera first
         cameraCapture.stopCapture()
-        // Just update state - the onChange handler in XtremePomodoroApp will dismiss the window
         appState.completeExercise()
     }
 
@@ -399,7 +435,7 @@ struct ExerciseOverlayView: View {
         case .standing: return .green
         case .goingDown: return .orange
         case .holdingSit: return .yellow
-        case .sitting: return .blue
+        case .sitting: return Color.workAccent
         case .goingUp: return .purple
         }
     }
@@ -407,6 +443,48 @@ struct ExerciseOverlayView: View {
     // MARK: - Debug View
 
     #if DEBUG
+    private var debugControlsView: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Button(action: {
+                    print("[ExerciseOverlay] Skip button pressed")
+                    completeExercise()
+                }) {
+                    Label("Skip", systemImage: "forward.end.fill")
+                }
+                .buttonStyle(.glass)
+                .tint(.orange)
+
+                Button(action: {
+                    print("[ExerciseOverlay] Fake Rep button pressed")
+                    poseDetector.addFakeRep()
+                }) {
+                    Label("+1 Rep", systemImage: "plus.circle.fill")
+                }
+                .buttonStyle(.glass)
+                .tint(.green)
+
+                if !cameraCapture.isCapturing {
+                    Button(action: { startCamera() }) {
+                        Label("Force Camera", systemImage: "camera")
+                    }
+                    .buttonStyle(.glass)
+                    .tint(Color.workAccent)
+                }
+
+                Toggle("Debug", isOn: $showDebugInfo)
+                    .toggleStyle(.button)
+                    .buttonStyle(.glass)
+                    .tint(.purple)
+            }
+
+            if showDebugInfo {
+                calibrationDebugView
+            }
+        }
+        .padding(.bottom, 20)
+    }
+
     private var calibrationDebugView: some View {
         let currentHipY = poseDetector.currentPose?.hipY
         let positionPercent = poseDetector.currentPose.flatMap { poseDetector.getPositionPercent($0) }
@@ -416,10 +494,9 @@ struct ExerciseOverlayView: View {
         return VStack(alignment: .leading, spacing: 8) {
             Text("CALIBRATION DEBUG")
                 .font(.headline)
-                .foregroundColor(.yellow)
+                .foregroundStyle(.yellow)
 
             HStack(spacing: 20) {
-                // Calibration status
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Circle()
@@ -433,7 +510,6 @@ struct ExerciseOverlayView: View {
 
                 Divider().frame(height: 50)
 
-                // Calibrated values
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Sit Y: \(String(format: "%.4f", poseDetector.sittingHipY))")
                     Text("Stand Y: \(String(format: "%.4f", poseDetector.standingHipY))")
@@ -442,7 +518,6 @@ struct ExerciseOverlayView: View {
 
                 Divider().frame(height: 50)
 
-                // Current position
                 VStack(alignment: .leading, spacing: 4) {
                     if let hipY = currentHipY {
                         Text("Current Y: \(String(format: "%.4f", hipY))")
@@ -452,15 +527,14 @@ struct ExerciseOverlayView: View {
                     }
 
                     if let percent = positionPercent {
-                        // Visual progress bar
                         HStack {
                             Text("Pos:")
                             GeometryReader { geo in
                                 ZStack(alignment: .leading) {
                                     RoundedRectangle(cornerRadius: 4)
-                                        .fill(Color.gray.opacity(0.3))
+                                        .fill(Color.glassBackground)
                                     RoundedRectangle(cornerRadius: 4)
-                                        .fill(percent > 50 ? Color.green : Color.blue)
+                                        .fill(percent > 50 ? Color.green : Color.workAccent)
                                         .frame(width: geo.size.width * CGFloat(percent / 100))
                                 }
                             }
@@ -472,27 +546,25 @@ struct ExerciseOverlayView: View {
 
                 Divider().frame(height: 50)
 
-                // Zone status
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Circle()
-                            .fill(inSitting ? Color.blue : Color.gray.opacity(0.3))
+                            .fill(inSitting ? Color.workAccent : Color.glassBackground)
                             .frame(width: 14, height: 14)
                         Text("In Sit Zone")
-                            .foregroundColor(inSitting ? .blue : .gray)
+                            .foregroundStyle(inSitting ? Color.workAccent : .secondary)
                     }
                     HStack {
                         Circle()
-                            .fill(inStanding ? Color.green : Color.gray.opacity(0.3))
+                            .fill(inStanding ? Color.green : Color.glassBackground)
                             .frame(width: 14, height: 14)
                         Text("In Stand Zone")
-                            .foregroundColor(inStanding ? .green : .gray)
+                            .foregroundStyle(inStanding ? .green : .secondary)
                     }
                 }
 
                 Divider().frame(height: 50)
 
-                // Exercise state
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Exercise: \(poseDetector.currentExercise.rawValue)")
                     HStack {
@@ -507,15 +579,36 @@ struct ExerciseOverlayView: View {
             .font(.system(size: 12, design: .monospaced))
         }
         .padding()
-        .background(Color.black.opacity(0.8))
-        .cornerRadius(12)
+        .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.yellow.opacity(0.5), lineWidth: 1)
+            RoundedRectangle(cornerRadius: Constants.cardCornerRadius)
+                .strokeBorder(Color.yellow.opacity(0.5), lineWidth: 1)
         )
-        .foregroundColor(.white)
+        .foregroundStyle(.white)
     }
     #endif
+}
+
+// MARK: - Status Indicator Component
+
+private struct StatusIndicator: View {
+    let isActive: Bool
+    let activeLabel: String
+    let inactiveLabel: String
+    let activeColor: Color
+    let inactiveColor: Color
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(isActive ? activeColor : inactiveColor)
+                .frame(width: Constants.statusIndicatorSize, height: Constants.statusIndicatorSize)
+            Text(isActive ? activeLabel : inactiveLabel)
+                .foregroundStyle(isActive ? activeColor : inactiveColor)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+    }
 }
 
 #Preview {

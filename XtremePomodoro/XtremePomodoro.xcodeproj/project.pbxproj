@@ -30,6 +30,7 @@
 		CCC000005 /* SessionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC000014 /* SessionDetailView.swift */; };
 		CCC000006 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC000015 /* MenuBarController.swift */; };
 		CCC000007 /* ScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC000016 /* ScheduleView.swift */; };
+		DDD000001 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDD000010 /* Constants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -73,6 +74,7 @@
 		CCC000014 /* SessionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDetailView.swift; sourceTree = "<group>"; };
 		CCC000015 /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarController.swift; sourceTree = "<group>"; };
 		CCC000016 /* ScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleView.swift; sourceTree = "<group>"; };
+		DDD000010 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +100,7 @@
 			isa = PBXGroup;
 			children = (
 				BBB000020 /* Services */,
+				DDD000010 /* Constants.swift */,
 				AAA000010 /* XtremePomodoroApp.swift */,
 				AAA000028 /* AppState.swift */,
 				AAA000029 /* PomodoroTimer.swift */,
@@ -216,6 +219,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DDD000001 /* Constants.swift in Sources */,
 				AAA000001 /* XtremePomodoroApp.swift in Sources */,
 				AAA00000C /* AppState.swift in Sources */,
 				AAA00000D /* PomodoroTimer.swift in Sources */,

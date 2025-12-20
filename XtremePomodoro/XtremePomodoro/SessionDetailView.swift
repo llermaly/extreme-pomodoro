@@ -1,11 +1,12 @@
 import SwiftUI
 import AppKit
 
-/// Detailed view of a single pomodoro session with journal and photos
+/// Detailed view of a single pomodoro session with Liquid Glass styling
 struct SessionDetailView: View {
     let session: PomodoroSession
     @ObservedObject var sessionStore: SessionStore
     @Binding var navigationPath: NavigationPath
+    @Namespace private var glassNamespace
 
     @State private var journalText: String = ""
     @State private var isEditingJournal: Bool = false
@@ -20,55 +21,20 @@ struct SessionDetailView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header with back button
-            HStack {
-                Button(action: { navigationPath.removeLast() }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
-                    }
-                }
-                .buttonStyle(.plain)
-                .foregroundColor(.blue)
-
-                Spacer()
-
-                // Status badge
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(statusColor)
-                        .frame(width: 10, height: 10)
-                    Text(statusText)
-                        .font(.subheadline)
-                        .foregroundColor(statusColor)
-                }
-
-                Spacer()
-
-                // Placeholder for symmetry
-                HStack(spacing: 4) {
-                    Image(systemName: "chevron.left")
-                    Text("Back")
-                }
-                .opacity(0)
-            }
-            .padding()
+            // Header with glass navigation
+            headerView
 
             Divider()
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    // Session info header
+                VStack(alignment: .leading, spacing: Constants.cardSpacing + 10) {
+                    // Session info header with glass card
                     sessionHeader
 
-                    Divider()
-
-                    // Photos section
+                    // Photos section with glass card
                     photosSection
 
-                    Divider()
-
-                    // Journal section
+                    // Journal section with glass card
                     journalSection
                 }
                 .padding()
@@ -82,40 +48,86 @@ struct SessionDetailView: View {
         }
     }
 
-    private var sessionHeader: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(formattedDate)
-                        .font(.title2)
-                        .fontWeight(.bold)
+    // MARK: - Header
 
-                    HStack(spacing: 16) {
-                        Label(session.timeString, systemImage: "clock")
-                        Label("\(session.durationMinutes) min", systemImage: "timer")
-                        Label(exerciseName, systemImage: exerciseIcon)
-                    }
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+    private var headerView: some View {
+        HStack {
+            Button(action: { navigationPath.removeLast() }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.left")
+                    Text("Back")
                 }
-
-                Spacer()
-
-                // Large status indicator
-                VStack {
-                    Image(systemName: statusIcon)
-                        .font(.system(size: 36))
-                        .foregroundColor(statusColor)
-                    Text(statusText)
-                        .font(.caption)
-                        .foregroundColor(statusColor)
-                }
-                .padding()
-                .background(statusColor.opacity(0.1))
-                .cornerRadius(12)
             }
+            .buttonStyle(.glass)
+            .glassEffectID("backButton", in: glassNamespace)
+
+            Spacer()
+
+            // Status badge with glass effect
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 10, height: 10)
+                Text(statusText)
+                    .font(.subheadline)
+                    .foregroundStyle(statusColor)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .glassEffect(.regular, in: .capsule)
+            .glassEffectID("statusBadge", in: glassNamespace)
+
+            Spacer()
+
+            // Placeholder for symmetry
+            HStack(spacing: 4) {
+                Image(systemName: "chevron.left")
+                Text("Back")
+            }
+            .opacity(0)
         }
+        .padding()
     }
+
+    // MARK: - Session Header
+
+    private var sessionHeader: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(formattedDate)
+                    .font(.title2)
+                    .fontWeight(.bold)
+
+                HStack(spacing: 16) {
+                    Label(session.timeString, systemImage: "clock")
+                    Label("\(session.durationMinutes) min", systemImage: "timer")
+                    Label(exerciseName, systemImage: exerciseIcon)
+                }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            // Large status indicator with glass
+            VStack {
+                Image(systemName: statusIcon)
+                    .font(.system(size: 36))
+                    .foregroundStyle(statusColor)
+                Text(statusText)
+                    .font(.caption)
+                    .foregroundStyle(statusColor)
+            }
+            .padding()
+            .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
+            .glassEffectID("statusIndicator", in: glassNamespace)
+        }
+        .padding(Constants.cardPadding)
+        .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
+        .glassEffectID("sessionHeader", in: glassNamespace)
+    }
+
+    // MARK: - Photos Section
 
     private var photosSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -129,40 +141,50 @@ struct SessionDetailView: View {
                     Button("Open Folder") {
                         NSWorkspace.shared.open(URL(fileURLWithPath: path))
                     }
-                    .buttonStyle(.bordered)
-                    .font(.caption)
+                    .buttonStyle(.glass)
+                    .glassEffectID("openFolder", in: glassNamespace)
                 }
             }
 
             if loadedPhotos.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "photo.badge.plus")
-                        .font(.system(size: 36))
-                        .foregroundColor(.secondary)
-
-                    Text("No photos available")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 40)
-                .background(Color(NSColor.controlBackgroundColor))
-                .cornerRadius(8)
+                emptyPhotosView
             } else {
-                // Group photos by rep number
-                let repNumbers = Set(loadedPhotos.map { $0.repNumber }).sorted()
+                photosGrid
+            }
+        }
+        .padding(Constants.cardPadding)
+        .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
+        .glassEffectID("photosSection", in: glassNamespace)
+    }
 
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                    ForEach(repNumbers, id: \.self) { repNumber in
-                        let repPhotos = loadedPhotos.filter { $0.repNumber == repNumber }
-                        ForEach(repPhotos) { photo in
-                            DetailPhotoCard(photo: photo)
-                        }
-                    }
+    private var emptyPhotosView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "photo.badge.plus")
+                .font(.system(size: 36))
+                .foregroundStyle(.secondary)
+
+            Text("No photos available")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
+    }
+
+    private var photosGrid: some View {
+        let repNumbers = Set(loadedPhotos.map { $0.repNumber }).sorted()
+
+        return LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+            ForEach(repNumbers, id: \.self) { repNumber in
+                let repPhotos = loadedPhotos.filter { $0.repNumber == repNumber }
+                ForEach(repPhotos) { photo in
+                    DetailPhotoCard(photo: photo, glassNamespace: glassNamespace)
                 }
             }
         }
     }
+
+    // MARK: - Journal Section
 
     private var journalSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -177,7 +199,7 @@ struct SessionDetailView: View {
                         journalText = session.journalEntry ?? ""
                         isEditingJournal = false
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
 
                     Button("Save") {
                         let entry = journalText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -189,38 +211,46 @@ struct SessionDetailView: View {
                     Button("Edit") {
                         isEditingJournal = true
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.glass)
                 }
             }
 
-            if isEditingJournal {
-                TextEditor(text: $journalText)
-                    .font(.body)
-                    .frame(minHeight: 100, maxHeight: 200)
-                    .padding(8)
-                    .background(Color(NSColor.textBackgroundColor))
-                    .cornerRadius(8)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-            } else if let journal = session.journalEntry, !journal.isEmpty {
-                Text(journal)
-                    .font(.body)
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(NSColor.controlBackgroundColor))
-                    .cornerRadius(8)
-            } else {
-                Text("No journal entry for this session")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .italic()
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(NSColor.controlBackgroundColor))
-                    .cornerRadius(8)
-            }
+            journalContent
+        }
+        .padding(Constants.cardPadding)
+        .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
+        .glassEffectID("journalSection", in: glassNamespace)
+    }
+
+    @ViewBuilder
+    private var journalContent: some View {
+        if isEditingJournal {
+            TextEditor(text: $journalText)
+                .font(.body)
+                .frame(minHeight: 100, maxHeight: 200)
+                .padding(8)
+                .background(Color.glassBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(Color.glassBorder, lineWidth: 1)
+                )
+        } else if let journal = session.journalEntry, !journal.isEmpty {
+            Text(journal)
+                .font(.body)
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.glassBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        } else {
+            Text("No journal entry for this session")
+                .font(.body)
+                .foregroundStyle(.secondary)
+                .italic()
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.glassBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }
 
@@ -255,9 +285,9 @@ struct SessionDetailView: View {
 
     private var statusColor: Color {
         switch session.status {
-        case .completed: return .green
+        case .completed: return Color.breakAccent
         case .cancelled: return .red
-        case .inProgress: return .gray
+        case .inProgress: return .secondary
         }
     }
 
@@ -292,7 +322,6 @@ struct SessionDetailView: View {
             loadedPhotos = pngFiles.compactMap { fileURL -> LoadedPhoto? in
                 guard let image = NSImage(contentsOf: fileURL) else { return nil }
 
-                // Parse filename: rep1_sitting.png or rep1_standing.png
                 let filename = fileURL.deletingPathExtension().lastPathComponent
                 let parts = filename.split(separator: "_")
                 guard parts.count >= 2,
@@ -310,9 +339,10 @@ struct SessionDetailView: View {
     }
 }
 
-/// Photo card for detail view
+/// Photo card with Liquid Glass styling
 struct DetailPhotoCard: View {
     let photo: SessionDetailView.LoadedPhoto
+    var glassNamespace: Namespace.ID
 
     var body: some View {
         VStack(spacing: 8) {
@@ -320,10 +350,10 @@ struct DetailPhotoCard: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(maxHeight: 200)
-                .cornerRadius(8)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(borderColor, lineWidth: 2)
+                        .strokeBorder(borderColor.opacity(0.6), lineWidth: 2)
                 )
 
             HStack {
@@ -333,16 +363,16 @@ struct DetailPhotoCard: View {
 
                 Text("Rep \(photo.repNumber) - \(photo.position.capitalized)")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding(8)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(12)
+        .glassEffect(.regular, in: .rect(cornerRadius: Constants.sessionItemCornerRadius))
+        .glassEffectID("photo-\(photo.id)", in: glassNamespace)
     }
 
     private var borderColor: Color {
-        photo.position.lowercased() == "sitting" ? .blue : .green
+        photo.position.lowercased() == "sitting" ? Color.workAccent : Color.breakAccent
     }
 }
 
