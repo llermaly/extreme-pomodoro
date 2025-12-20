@@ -125,7 +125,7 @@ struct OnboardingView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-            } else if currentStep == 3 && appState.exerciseType == "sitToStand" {
+            } else if currentStep == 3 && (appState.exerciseType == "sitToStand" || appState.exerciseType == "standingDesk") {
                 if poseDetector.isCalibrated {
                     Button("Next") {
                         nextStep()
@@ -384,10 +384,22 @@ struct OnboardingView: View {
                 }
 
                 ExerciseOption(
+                    title: "Standing Desk",
+                    description: "Continuous sit/stand posture monitoring. Track your standing desk usage.",
+                    icon: "desktopcomputer",
+                    isSelected: appState.exerciseType == "standingDesk",
+                    isComingSoon: true,
+                    glassNamespace: glassNamespace
+                ) {
+                    appState.exerciseType = "standingDesk"
+                }
+
+                ExerciseOption(
                     title: "Squats",
                     description: "Full squat movements. More intense workout.",
                     icon: "figure.strengthtraining.traditional",
                     isSelected: appState.exerciseType == "squats",
+                    isComingSoon: true,
                     glassNamespace: glassNamespace
                 ) {
                     appState.exerciseType = "squats"
@@ -398,6 +410,7 @@ struct OnboardingView: View {
                     description: "Cardio exercise with arm movements.",
                     icon: "figure.jumprope",
                     isSelected: appState.exerciseType == "jumpingJacks",
+                    isComingSoon: true,
                     glassNamespace: glassNamespace
                 ) {
                     appState.exerciseType = "jumpingJacks"
@@ -408,6 +421,7 @@ struct OnboardingView: View {
                     description: "Simple arm raises. Low impact option.",
                     icon: "figure.arms.open",
                     isSelected: appState.exerciseType == "armRaises",
+                    isComingSoon: true,
                     glassNamespace: glassNamespace
                 ) {
                     appState.exerciseType = "armRaises"
@@ -448,11 +462,11 @@ struct OnboardingView: View {
 
     private var cameraCalibrationStep: some View {
         VStack(spacing: 12) {
-            Text(appState.exerciseType == "sitToStand" ? "Camera & Calibration" : "Camera Setup")
+            Text((appState.exerciseType == "sitToStand" || appState.exerciseType == "standingDesk") ? "Camera & Calibration" : "Camera Setup")
                 .font(.title)
                 .fontWeight(.bold)
 
-            Text(appState.exerciseType == "sitToStand"
+            Text((appState.exerciseType == "sitToStand" || appState.exerciseType == "standingDesk")
                  ? "Select your camera and calibrate your sitting/standing positions"
                  : "Select the camera you'll use for exercise tracking")
                 .font(.subheadline)
@@ -523,7 +537,7 @@ struct OnboardingView: View {
                     .buttonStyle(.glass)
             }
 
-            if appState.exerciseType == "sitToStand" {
+            if appState.exerciseType == "sitToStand" || appState.exerciseType == "standingDesk" {
                 calibrationSection
             } else {
                 nonCalibrationSection
@@ -645,7 +659,7 @@ struct OnboardingView: View {
     }
 
     private var borderColor: Color {
-        if appState.exerciseType == "sitToStand" {
+        if appState.exerciseType == "sitToStand" || appState.exerciseType == "standingDesk" {
             return poseDetector.isCalibrated ? Color.breakAccent : Color.workAccent
         } else {
             return poseDetector.isPersonDetected ? Color.breakAccent : Color.secondary
@@ -719,6 +733,7 @@ struct OnboardingView: View {
     private var exerciseDisplayName: String {
         switch appState.exerciseType {
         case "sitToStand": return "Sit-to-Stand"
+        case "standingDesk": return "Standing Desk"
         case "squats": return "Squats"
         case "jumpingJacks": return "Jumping Jacks"
         case "armRaises": return "Arm Raises"
@@ -756,27 +771,46 @@ struct ExerciseOption: View {
     let description: String
     let icon: String
     let isSelected: Bool
+    var isComingSoon: Bool = false
     var glassNamespace: Namespace.ID
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            if !isComingSoon {
+                action()
+            }
+        }) {
             HStack {
                 Image(systemName: icon)
                     .font(.title)
                     .frame(width: 50)
+                    .foregroundStyle(isComingSoon ? .tertiary : .primary)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.headline)
+                    HStack(spacing: 8) {
+                        Text(title)
+                            .font(.headline)
+                            .foregroundStyle(isComingSoon ? .tertiary : .primary)
+                        if isComingSoon {
+                            Text("Soon")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.secondary.opacity(0.2))
+                                .clipShape(Capsule())
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     Text(description)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(isComingSoon ? .tertiary : .secondary)
                 }
 
                 Spacer()
 
-                if isSelected {
+                if isSelected && !isComingSoon {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title2)
                         .foregroundStyle(Color.workAccent)
@@ -785,12 +819,14 @@ struct ExerciseOption: View {
             .padding()
         }
         .buttonStyle(.plain)
-        .glassEffect(isSelected ? .regular : .regular, in: .rect(cornerRadius: Constants.sessionItemCornerRadius))
+        .disabled(isComingSoon)
+        .glassEffect(isSelected && !isComingSoon ? .regular : .regular, in: .rect(cornerRadius: Constants.sessionItemCornerRadius))
         .glassEffectID("exercise-\(title)", in: glassNamespace)
         .overlay(
             RoundedRectangle(cornerRadius: Constants.sessionItemCornerRadius)
-                .strokeBorder(isSelected ? Color.workAccent : Color.clear, lineWidth: 2)
+                .strokeBorder(isSelected && !isComingSoon ? Color.workAccent : Color.clear, lineWidth: 2)
         )
+        .opacity(isComingSoon ? 0.6 : 1.0)
     }
 }
 

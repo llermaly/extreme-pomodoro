@@ -223,6 +223,7 @@ class PoseDetector: ObservableObject {
 
     enum ExerciseType: String, CaseIterable {
         case sitToStand = "Sit-to-Stand"
+        case standingDesk = "Standing Desk"
         case jumpingJacks = "Jumping Jacks"
         case squats = "Squats"
         case armRaises = "Arm Raises"
@@ -672,6 +673,8 @@ class PoseDetector: ObservableObject {
         switch currentExercise {
         case .sitToStand:
             trackSitToStand(pose)
+        case .standingDesk:
+            trackStandingDesk(pose)
         case .jumpingJacks, .squats, .armRaises:
             trackSimpleExercise(pose)
         }
@@ -771,6 +774,42 @@ class PoseDetector: ObservableObject {
         case .goingUp:
             // Skip "up" - the rep count will be spoken right after
             break
+        }
+    }
+
+    // Standing desk tracking - continuous posture monitoring
+    @Published var standingDeskState: StandingDeskState = .unknown
+    private var lastStandingDeskStateChange: Date = Date()
+    @Published var currentPositionDuration: TimeInterval = 0
+
+    enum StandingDeskState: String {
+        case unknown = "Detecting..."
+        case sitting = "Sitting"
+        case standing = "Standing"
+    }
+
+    private func trackStandingDesk(_ pose: DetectedPose) {
+        guard isCalibrated else {
+            standingDeskState = .unknown
+            return
+        }
+
+        let inSittingZone = isInSittingZone(pose)
+        let inStandingZone = isInStandingZone(pose)
+        let previousState = standingDeskState
+
+        if inStandingZone {
+            standingDeskState = .standing
+        } else if inSittingZone {
+            standingDeskState = .sitting
+        }
+
+        // Track duration in current position
+        if standingDeskState != previousState && previousState != .unknown {
+            lastStandingDeskStateChange = Date()
+            currentPositionDuration = 0
+        } else {
+            currentPositionDuration = Date().timeIntervalSince(lastStandingDeskStateChange)
         }
     }
 

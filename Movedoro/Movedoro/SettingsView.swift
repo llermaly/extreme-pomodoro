@@ -110,18 +110,21 @@ struct SettingsView: View {
                 Spacer()
                 Picker("", selection: $appState.exerciseType) {
                     Text("Sit-to-Stand").tag("sitToStand")
-                    Text("Squats").tag("squats")
-                    Text("Jumping Jacks").tag("jumpingJacks")
-                    Text("Arm Raises").tag("armRaises")
+                    Text("Standing Desk (Soon)").tag("standingDesk")
+                    Text("Squats (Soon)").tag("squats")
+                    Text("Jumping Jacks (Soon)").tag("jumpingJacks")
+                    Text("Arm Raises (Soon)").tag("armRaises")
                 }
-                .frame(width: 150)
+                .frame(width: 180)
             }
 
-            HStack {
-                Text("Reps Required")
-                Spacer()
-                Stepper("\(appState.repsRequired)", value: $appState.repsRequired, in: 3...30)
-                    .frame(width: 120)
+            if appState.exerciseType == "sitToStand" {
+                HStack {
+                    Text("Reps Required")
+                    Spacer()
+                    Stepper("\(appState.repsRequired)", value: $appState.repsRequired, in: 3...30)
+                        .frame(width: 120)
+                }
             }
         }
     }
