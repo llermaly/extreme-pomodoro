@@ -1,10 +1,12 @@
 import SwiftUI
 import AVFoundation
+import Sparkle
 
 @main
 struct MovedoroApp: App {
     @StateObject private var appState = AppState()
     @StateObject private var pomodoroTimer = PomodoroTimer()
+    @StateObject private var updaterController = UpdaterController()
 
     var body: some Scene {
         WindowGroup {
@@ -31,6 +33,11 @@ struct MovedoroApp: App {
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
         .commands {
+            // Check for Updates menu item
+            CommandGroup(after: .appInfo) {
+                CheckForUpdatesView(updaterController: updaterController)
+            }
+
             // Remove default quit command to prevent easy escape
             CommandGroup(replacing: .appTermination) {
                 Button("Quit Movedoro") {

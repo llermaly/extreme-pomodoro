@@ -1,0 +1,200 @@
+name: Release
+
+on:
+  issue_comment:
+    types: [created]
+
+env:
+  PROJNAME: Movedoro
+  SCHEME: Movedoro
+  RELEASES_REPO: llermaly/movedoro-releases
+
+jobs:
+  release:
+    name: "Create Release"
+    runs-on: macos-14
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/release') && github.event.comment.user.login == github.repository_owner
+
+    steps:
+      - name: Check PR is ready to merge
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            if (pr.data.draft || pr.data.mergeable_state !== "clean") {
+              core.setFailed("PR is not ready to be merged");
+            }
+
+      - name: Get branch name
+        uses: xt0rted/pull-request-comment-branch@v2
+        id: comment-branch
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+
+      - name: Extract latest changes from Release_Notes.md
+        id: latest_changes
+        run: |
+          python3 ./Configuration/generate_latest_changes.py
+          echo "new_version=$(cat new_version)" >> $GITHUB_OUTPUT
+          echo "old_version=$(cat old_version)" >> $GITHUB_OUTPUT
+          echo "title=$(cat title)" >> $GITHUB_OUTPUT
+
+      - name: Check if version already released
+        working-directory: ${{ env.PROJNAME }}
+        run: |
+          current_version=$(xcrun agvtool what-version -terse)
+          new_version=$(cat ../new_version)
+          if [[ "$current_version" == "$new_version" ]]; then
+            echo "Version $new_version already released" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Check if release notes are empty
+        run: |
+          if [[ ! -s latest_changes ]]; then
+            echo "Release notes are empty" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Bump version in Xcode project
+        working-directory: ${{ env.PROJNAME }}
+        run: |
+          current_version=$(xcrun agvtool what-version -terse)
+          new_version=${{ steps.latest_changes.outputs.new_version }}
+          sed -i '' "s/CURRENT_PROJECT_VERSION = ${current_version}/CURRENT_PROJECT_VERSION = ${new_version}/g" ${{ env.PROJNAME }}.xcodeproj/project.pbxproj
+          sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${new_version}/g" ${{ env.PROJNAME }}.xcodeproj/project.pbxproj
+
+      - name: Install Apple certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode -o $CERTIFICATE_PATH
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      - name: Build and archive
+        working-directory: ${{ env.PROJNAME }}
+        run: |
+          xcodebuild clean archive \
+            -project ${{ env.PROJNAME }}.xcodeproj \
+            -scheme ${{ env.SCHEME }} \
+            -archivePath ${{ runner.temp }}/${{ env.PROJNAME }}.xcarchive \
+            -destination "generic/platform=macOS" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="${{ secrets.CODE_SIGN_IDENTITY }}"
+
+      - name: Export app
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath ${{ runner.temp }}/${{ env.PROJNAME }}.xcarchive \
+            -exportPath ${{ runner.temp }}/Release \
+            -exportOptionsPlist Configuration/export_options.plist
+
+      - name: Create ZIP for Sparkle
+        run: |
+          cd ${{ runner.temp }}/Release
+          ditto -c -k --sequesterRsrc --keepParent ${{ env.PROJNAME }}.app ${{ env.PROJNAME }}.zip
+
+      - name: Download Sparkle
+        run: |
+          cd ${{ runner.temp }}
+          curl -L -o Sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.6.4/Sparkle-2.6.4.tar.xz
+          mkdir Sparkle
+          tar -xf Sparkle.tar.xz -C Sparkle
+
+      - name: Generate release notes HTML
+        run: |
+          pip3 install markdown
+          python3 ./Configuration/generate_html_for_sparkle_release.py
+          mv latest_changes.html ${{ runner.temp }}/Release/${{ env.PROJNAME }}.html
+
+      - name: Checkout releases repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.RELEASES_REPO }}
+          token: ${{ secrets.RELEASES_REPO_TOKEN }}
+          path: releases-repo
+
+      - name: Create EdDSA key file
+        run: |
+          echo -n "${{ secrets.SPARKLE_EDDSA_KEY }}" > ${{ runner.temp }}/sparkle_eddsa_key
+
+      - name: Update appcast
+        run: |
+          ${{ runner.temp }}/Sparkle/bin/generate_appcast \
+            --ed-key-file ${{ runner.temp }}/sparkle_eddsa_key \
+            --link "https://github.com/${{ github.repository }}/releases" \
+            --download-url-prefix "https://github.com/${{ github.repository }}/releases/download/v${{ steps.latest_changes.outputs.new_version }}/" \
+            -o releases-repo/appcast.xml \
+            ${{ runner.temp }}/Release/
+
+      - name: Push appcast to releases repo
+        run: |
+          cd releases-repo
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add appcast.xml
+          git commit -m "Update appcast for v${{ steps.latest_changes.outputs.new_version }}" || echo "No changes to commit"
+          git push
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ steps.latest_changes.outputs.title }}
+          tag_name: v${{ steps.latest_changes.outputs.new_version }}
+          fail_on_unmatched_files: true
+          body_path: latest_changes
+          files: |
+            ${{ runner.temp }}/Release/${{ env.PROJNAME }}.zip
+
+      - name: Cleanup sensitive files
+        run: |
+          rm -f ${{ runner.temp }}/sparkle_eddsa_key
+          rm -f new_version old_version title latest_changes
+
+      - name: Commit version bump
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Release v${{ steps.latest_changes.outputs.new_version }}"
+          file_pattern: "${{ env.PROJNAME }}/${{ env.PROJNAME }}.xcodeproj/project.pbxproj"
+
+      - name: Get branch again for merge
+        uses: xt0rted/pull-request-comment-branch@v2
+        id: comment-branch-2
+
+      - name: Checkout for merge
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.comment-branch-2.outputs.head_ref }}
+
+      - name: Merge PR
+        uses: pascalgn/automerge-action@v0.16.3
+        env:
+          MERGE_LABELS: ""
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_COMMIT_MESSAGE: "Release v${{ steps.latest_changes.outputs.new_version }}"
+          MERGE_FILTER_AUTHOR: ${{ github.repository_owner }}
+          MERGE_ERROR_FAIL: true
+
+      - name: Cleanup keychain
+        if: always()
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true

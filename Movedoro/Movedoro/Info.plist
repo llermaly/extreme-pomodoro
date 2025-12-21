@@ -32,5 +32,13 @@
 	<string>Copyright 2024. All rights reserved.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+
+	<!-- Sparkle Configuration -->
+	<key>SUFeedURL</key>
+	<string>https://llermaly.github.io/movedoro-releases/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>pfIShU4dEXqPd5ObYNfDBiQWcXozk7estwzTnF9BamQ=</string>
+	<key>SUEnableInstallerLauncherService</key>
+	<true/>
 </dict>
 </plist>
