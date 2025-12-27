@@ -7,4 +7,3 @@
 * Pomodoro timer with exercise breaks
 * Pose detection for exercise tracking
 * Voice commands support
-
