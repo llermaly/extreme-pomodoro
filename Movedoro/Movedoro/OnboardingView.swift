@@ -1,7 +1,7 @@
 import SwiftUI
 import AVFoundation
 
-/// First-time setup wizard with Liquid Glass styling
+/// First-time setup wizard
 struct OnboardingView: View {
     @EnvironmentObject var appState: AppState
 
@@ -11,7 +11,6 @@ struct OnboardingView: View {
     @State private var showPoseOverlay = true
     @State private var cameraPermissionGranted = false
     @State private var cameraPermissionRequested = false
-    @Namespace private var glassNamespace
 
     private let totalSteps = 5
 
@@ -84,14 +83,13 @@ struct OnboardingView: View {
             HStack(spacing: 6) {
                 ForEach(0..<totalSteps, id: \.self) { step in
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(step <= currentStep ? Color.workAccent : Color.glassBackground)
+                        .fill(step <= currentStep ? Color.workAccent : Color.secondary.opacity(0.3))
                         .frame(height: 6)
                 }
             }
             .padding(.horizontal, 40)
             .padding(.vertical, 8)
-            .glassEffect(.regular, in: .capsule)
-            .glassEffectID("progressBar", in: glassNamespace)
+            .background(.ultraThinMaterial, in: Capsule())
 
             Text("Step \(currentStep + 1) of \(totalSteps)")
                 .font(.caption)
@@ -111,8 +109,7 @@ struct OnboardingView: View {
                         currentStep -= 1
                     }
                 }
-                .buttonStyle(.glass)
-                .glassEffectID("backButton", in: glassNamespace)
+                .buttonStyle(.bordered)
                 .controlSize(.large)
             }
 
@@ -137,8 +134,7 @@ struct OnboardingView: View {
                         Button("Skip for now") {
                             nextStep()
                         }
-                        .buttonStyle(.glass)
-                        .glassEffectID("skipButton", in: glassNamespace)
+                        .buttonStyle(.bordered)
                         .controlSize(.large)
 
                         if poseDetector.calibrationState == .calibrated || poseDetector.calibrationState == .notCalibrated {
@@ -161,8 +157,7 @@ struct OnboardingView: View {
         }
         .padding(.horizontal, 30)
         .padding(.vertical, 16)
-        .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
-        .glassEffectID("navBar", in: glassNamespace)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
         .padding(.horizontal, 20)
         .padding(.bottom, 16)
     }
@@ -218,8 +213,7 @@ struct OnboardingView: View {
                 FeatureRow(icon: "lock.fill", title: "Enforced Breaks", description: "Screen locks until you complete your exercise")
             }
             .padding(Constants.cardPadding)
-            .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
-            .glassEffectID("featureList", in: glassNamespace)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
             .padding(.top, 30)
 
             Spacer()
@@ -292,8 +286,7 @@ struct OnboardingView: View {
                     .padding(.top, 4)
                 }
                 .padding(Constants.cardPadding)
-                .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
-                .glassEffectID("pomodoroSettings", in: glassNamespace)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
 
                 // Working Hours Section
                 VStack(alignment: .leading, spacing: 16) {
@@ -344,8 +337,7 @@ struct OnboardingView: View {
                     .padding(.top, 4)
                 }
                 .padding(Constants.cardPadding)
-                .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
-                .glassEffectID("workingHours", in: glassNamespace)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
             }
             .frame(maxWidth: 500)
 
@@ -377,8 +369,7 @@ struct OnboardingView: View {
                     title: "Sit-to-Stand",
                     description: "Stand up from sitting position. Great for desk workers. Requires calibration.",
                     icon: "figure.stand",
-                    isSelected: appState.exerciseType == "sitToStand",
-                    glassNamespace: glassNamespace
+                    isSelected: appState.exerciseType == "sitToStand"
                 ) {
                     appState.exerciseType = "sitToStand"
                 }
@@ -388,8 +379,7 @@ struct OnboardingView: View {
                     description: "Continuous sit/stand posture monitoring. Track your standing desk usage.",
                     icon: "desktopcomputer",
                     isSelected: appState.exerciseType == "standingDesk",
-                    isComingSoon: true,
-                    glassNamespace: glassNamespace
+                    isComingSoon: true
                 ) {
                     appState.exerciseType = "standingDesk"
                 }
@@ -399,8 +389,7 @@ struct OnboardingView: View {
                     description: "Full squat movements. More intense workout.",
                     icon: "figure.strengthtraining.traditional",
                     isSelected: appState.exerciseType == "squats",
-                    isComingSoon: true,
-                    glassNamespace: glassNamespace
+                    isComingSoon: true
                 ) {
                     appState.exerciseType = "squats"
                 }
@@ -410,8 +399,7 @@ struct OnboardingView: View {
                     description: "Cardio exercise with arm movements.",
                     icon: "figure.jumprope",
                     isSelected: appState.exerciseType == "jumpingJacks",
-                    isComingSoon: true,
-                    glassNamespace: glassNamespace
+                    isComingSoon: true
                 ) {
                     appState.exerciseType = "jumpingJacks"
                 }
@@ -421,8 +409,7 @@ struct OnboardingView: View {
                     description: "Simple arm raises. Low impact option.",
                     icon: "figure.arms.open",
                     isSelected: appState.exerciseType == "armRaises",
-                    isComingSoon: true,
-                    glassNamespace: glassNamespace
+                    isComingSoon: true
                 ) {
                     appState.exerciseType = "armRaises"
                 }
@@ -449,8 +436,7 @@ struct OnboardingView: View {
                     .foregroundStyle(.secondary)
             }
             .padding(Constants.cardPadding)
-            .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
-            .glassEffectID("repsSettings", in: glassNamespace)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
             .frame(maxWidth: 500)
 
             Spacer()
@@ -498,7 +484,6 @@ struct OnboardingView: View {
                         )
                 }
             }
-            .glassEffect(.clear, in: .rect(cornerRadius: Constants.cameraPreviewCornerRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: Constants.cameraPreviewCornerRadius)
                     .strokeBorder(borderColor.opacity(0.6), lineWidth: 3)
@@ -528,13 +513,12 @@ struct OnboardingView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .glassEffect(.regular, in: .capsule)
-                    .glassEffectID("personStatus", in: glassNamespace)
+                    .background(.ultraThinMaterial, in: Capsule())
                 }
 
                 Toggle("Skeleton", isOn: $showPoseOverlay)
                     .toggleStyle(.button)
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
             }
 
             if appState.exerciseType == "sitToStand" || appState.exerciseType == "standingDesk" {
@@ -574,8 +558,7 @@ struct OnboardingView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .glassEffect(.regular, in: .capsule)
-                .glassEffectID("calibrationStatus", in: glassNamespace)
+                .background(.ultraThinMaterial, in: Capsule())
 
                 if cameraCapture.isCapturing {
                     HStack {
@@ -599,13 +582,12 @@ struct OnboardingView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
-                        .glassEffect(.regular, in: .rect(cornerRadius: 10))
-                        .glassEffectID("calibrationMessage", in: glassNamespace)
+                        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
 
                     Button("Cancel Calibration") {
                         poseDetector.cancelCalibration()
                     }
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
                     .tint(.red)
                 }
             } else if poseDetector.isCalibrated {
@@ -621,13 +603,12 @@ struct OnboardingView: View {
                     Button("Re-Calibrate") {
                         poseDetector.startCalibration()
                     }
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
                     .tint(.purple)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .glassEffect(.regular, in: .rect(cornerRadius: 10))
-                .glassEffectID("calibrationComplete", in: glassNamespace)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
             } else {
                 Button("Start Calibration") {
                     poseDetector.startCalibration()
@@ -652,8 +633,7 @@ struct OnboardingView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .glassEffect(.regular, in: .capsule)
-                .glassEffectID("cameraReady", in: glassNamespace)
+                .background(.ultraThinMaterial, in: Capsule())
             }
         }
     }
@@ -719,8 +699,7 @@ struct OnboardingView: View {
             }
             .font(.title3)
             .padding(Constants.cardPadding)
-            .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
-            .glassEffectID("summaryCard", in: glassNamespace)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
 
             Spacer()
         }
@@ -772,7 +751,6 @@ struct ExerciseOption: View {
     let icon: String
     let isSelected: Bool
     var isComingSoon: Bool = false
-    var glassNamespace: Namespace.ID
     let action: () -> Void
 
     var body: some View {
@@ -820,8 +798,7 @@ struct ExerciseOption: View {
         }
         .buttonStyle(.plain)
         .disabled(isComingSoon)
-        .glassEffect(isSelected && !isComingSoon ? .regular : .regular, in: .rect(cornerRadius: Constants.sessionItemCornerRadius))
-        .glassEffectID("exercise-\(title)", in: glassNamespace)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.sessionItemCornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: Constants.sessionItemCornerRadius)
                 .strokeBorder(isSelected && !isComingSoon ? Color.workAccent : Color.clear, lineWidth: 2)

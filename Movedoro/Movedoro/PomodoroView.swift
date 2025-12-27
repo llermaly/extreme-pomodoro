@@ -1,10 +1,9 @@
 import SwiftUI
 
-/// Main Pomodoro timer screen with Liquid Glass styling
+/// Main Pomodoro timer screen
 struct PomodoroView: View {
     @EnvironmentObject var appState: AppState
     @ObservedObject var timer: PomodoroTimer
-    @Namespace private var glassNamespace
 
     var body: some View {
         ZStack {
@@ -84,27 +83,23 @@ struct PomodoroView: View {
 
             Spacer()
 
-            // Toolbar buttons grouped together with glass effect
-            GlassEffectContainer(spacing: Constants.glassSpacing) {
-                HStack(spacing: Constants.headerSpacing) {
-                    Button(action: { appState.showScheduleView() }) {
-                        Image(systemName: "calendar")
-                            .font(.title2)
-                            .frame(width: Constants.headerIconSize, height: Constants.headerIconSize)
-                    }
-                    .buttonStyle(.glass)
-                    .glassEffectID("calendar", in: glassNamespace)
-                    .help("Today's Progress")
-
-                    Button(action: { appState.showSettings = true }) {
-                        Image(systemName: "gear")
-                            .font(.title2)
-                            .frame(width: Constants.headerIconSize, height: Constants.headerIconSize)
-                    }
-                    .buttonStyle(.glass)
-                    .glassEffectID("settings", in: glassNamespace)
-                    .help("Settings")
+            // Toolbar buttons
+            HStack(spacing: Constants.headerSpacing) {
+                Button(action: { appState.showScheduleView() }) {
+                    Image(systemName: "calendar")
+                        .font(.title2)
+                        .frame(width: Constants.headerIconSize, height: Constants.headerIconSize)
                 }
+                .buttonStyle(.bordered)
+                .help("Today's Progress")
+
+                Button(action: { appState.showSettings = true }) {
+                    Image(systemName: "gear")
+                        .font(.title2)
+                        .frame(width: Constants.headerIconSize, height: Constants.headerIconSize)
+                }
+                .buttonStyle(.bordered)
+                .help("Settings")
             }
         }
         .padding(.horizontal)
@@ -124,12 +119,10 @@ struct PomodoroView: View {
 
     private var timerDisplay: some View {
         ZStack {
-            // Background circle with glass effect
+            // Background circle
             Circle()
                 .fill(Color.glassBackground)
                 .frame(width: Constants.timerSize, height: Constants.timerSize)
-                .glassEffect(.regular, in: .circle)
-                .glassEffectID("timerBackground", in: glassNamespace)
 
             // Progress circle - color indicates session type
             Circle()
@@ -161,39 +154,32 @@ struct PomodoroView: View {
     // MARK: - Control Buttons
 
     private var controlButtons: some View {
-        GlassEffectContainer(spacing: Constants.glassSpacing) {
-            HStack(spacing: Constants.buttonSpacing) {
-                if timer.timerState == .idle {
-                    // Primary action - uses color to draw attention
-                    Button(action: { timer.startWorkSession() }) {
-                        Label("Start", systemImage: "play.fill")
-                            .frame(width: Constants.primaryButtonWidth)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .glassEffectID("startButton", in: glassNamespace)
-                    .controlSize(.large)
-                } else {
-                    Button(action: { timer.togglePause() }) {
-                        Label(
-                            timer.timerState == .running ? "Pause" : "Resume",
-                            systemImage: timer.timerState == .running ? "pause.fill" : "play.fill"
-                        )
+        HStack(spacing: Constants.buttonSpacing) {
+            if timer.timerState == .idle {
+                // Primary action - uses color to draw attention
+                Button(action: { timer.startWorkSession() }) {
+                    Label("Start", systemImage: "play.fill")
                         .frame(width: Constants.primaryButtonWidth)
-                    }
-                    .buttonStyle(.glass)
-                    .glassEffect(.regular.interactive(), in: .capsule)
-                    .glassEffectID("pauseButton", in: glassNamespace)
-                    .controlSize(.large)
-
-                    Button(action: { timer.reset() }) {
-                        Label("Reset", systemImage: "stop.fill")
-                            .frame(width: Constants.secondaryButtonWidth)
-                    }
-                    .buttonStyle(.glass)
-                    .glassEffect(.regular.interactive(), in: .capsule)
-                    .glassEffectID("resetButton", in: glassNamespace)
-                    .controlSize(.large)
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+            } else {
+                Button(action: { timer.togglePause() }) {
+                    Label(
+                        timer.timerState == .running ? "Pause" : "Resume",
+                        systemImage: timer.timerState == .running ? "pause.fill" : "play.fill"
+                    )
+                    .frame(width: Constants.primaryButtonWidth)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+
+                Button(action: { timer.reset() }) {
+                    Label("Reset", systemImage: "stop.fill")
+                        .frame(width: Constants.secondaryButtonWidth)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
             }
         }
     }
@@ -205,9 +191,7 @@ struct PomodoroView: View {
             Label("Skip Break", systemImage: "forward.end.fill")
                 .frame(width: 140)
         }
-        .buttonStyle(.glass)
-        .glassEffect(.regular.interactive(), in: .capsule)
-        .glassEffectID("skipBreak", in: glassNamespace)
+        .buttonStyle(.bordered)
         .controlSize(.large)
         .padding(.top, 10)
     }
@@ -223,8 +207,7 @@ struct PomodoroView: View {
             StatItem(value: "\(appState.repsRequired)", label: "Reps")
         }
         .padding(Constants.statBarPadding)
-        .glassEffect(.regular, in: .rect(cornerRadius: Constants.statBarCornerRadius))
-        .glassEffectID("statsBar", in: glassNamespace)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.statBarCornerRadius))
     }
 
     // MARK: - Debug Controls

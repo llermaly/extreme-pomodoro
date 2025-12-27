@@ -1,11 +1,10 @@
 import SwiftUI
 
-/// View showing all sessions for a specific day with Liquid Glass styled blocks
+/// View showing all sessions for a specific day
 struct DaySessionsView: View {
     let date: Date
     @ObservedObject var sessionStore: SessionStore
     @Binding var navigationPath: NavigationPath
-    @Namespace private var glassNamespace
 
     private let calendar = Calendar.current
 
@@ -24,7 +23,7 @@ struct DaySessionsView: View {
                 emptyState
             } else {
                 ScrollView {
-                    // Grid of session blocks with glass effects
+                    // Grid of session blocks
                     LazyVGrid(columns: [
                         GridItem(.flexible()),
                         GridItem(.flexible()),
@@ -32,7 +31,7 @@ struct DaySessionsView: View {
                         GridItem(.flexible())
                     ], spacing: Constants.sessionGridSpacing) {
                         ForEach(sessions) { session in
-                            SessionSquare(session: session, glassNamespace: glassNamespace) {
+                            SessionSquare(session: session) {
                                 navigationPath.append(session)
                             }
                         }
@@ -54,8 +53,7 @@ struct DaySessionsView: View {
                     Text("Back")
                 }
             }
-            .buttonStyle(.glass)
-            .glassEffectID("backButton", in: glassNamespace)
+            .buttonStyle(.bordered)
 
             Spacer()
 
@@ -63,8 +61,7 @@ struct DaySessionsView: View {
                 .font(.headline)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .glassEffect(.regular, in: .capsule)
-                .glassEffectID("dateTitle", in: glassNamespace)
+                .background(.ultraThinMaterial, in: Capsule())
 
             Spacer()
 
@@ -116,10 +113,9 @@ struct DaySessionsView: View {
     }
 }
 
-/// A square block representing a single session with Liquid Glass styling
+/// A square block representing a single session
 struct SessionSquare: View {
     let session: PomodoroSession
-    var glassNamespace: Namespace.ID
     let onTap: () -> Void
 
     var body: some View {
@@ -147,9 +143,8 @@ struct SessionSquare: View {
             }
             .frame(width: Constants.sessionItemSize, height: Constants.sessionItemSize)
         }
-        .buttonStyle(.glass)
-        .glassEffect(.regular, in: .rect(cornerRadius: Constants.sessionItemCornerRadius))
-        .glassEffectID("session-\(session.id)", in: glassNamespace)
+        .buttonStyle(.bordered)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.sessionItemCornerRadius))
         .overlay(
             // Subtle status indicator at corner
             Circle()

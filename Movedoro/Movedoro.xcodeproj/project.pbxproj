@@ -23,7 +23,7 @@
 		AAA000012A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA00002E /* OnboardingView.swift */; };
 		AAA000013A /* ExerciseWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAA00002F /* ExerciseWindowController.swift */; };
 		BBB000001 /* TTSService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB000010 /* TTSService.swift */; };
-		BBB000002 /* SpeechRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB000011 /* SpeechRecognitionService.swift */; };
+		EEE000001 /* UpdaterController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEE000010 /* UpdaterController.swift */; };
 		C9AB6B0C2EF771A0004051E1 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = C9AB6B0B2EF771A0004051E1 /* Sparkle */; };
 		CCC000001 /* PomodoroSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC000010 /* PomodoroSession.swift */; };
 		CCC000002 /* JournalEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCC000011 /* JournalEntrySheet.swift */; };
@@ -68,7 +68,6 @@
 		AAA00002E /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		AAA00002F /* ExerciseWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseWindowController.swift; sourceTree = "<group>"; };
 		BBB000010 /* TTSService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTSService.swift; sourceTree = "<group>"; };
-		BBB000011 /* SpeechRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionService.swift; sourceTree = "<group>"; };
 		CCC000010 /* PomodoroSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomodoroSession.swift; sourceTree = "<group>"; };
 		CCC000011 /* JournalEntrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntrySheet.swift; sourceTree = "<group>"; };
 		CCC000012 /* WeeklyScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyScheduleView.swift; sourceTree = "<group>"; };
@@ -78,6 +77,7 @@
 		CCC000016 /* ScheduleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleView.swift; sourceTree = "<group>"; };
 		DDD000010 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		DDD000011 /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopoverView.swift; sourceTree = "<group>"; };
+		EEE000010 /* UpdaterController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdaterController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,6 +127,7 @@
 				CCC000015 /* MenuBarController.swift */,
 				DDD000011 /* MenuBarPopoverView.swift */,
 				CCC000016 /* ScheduleView.swift */,
+				EEE000010 /* UpdaterController.swift */,
 				AAA000012 /* Assets.xcassets */,
 				AAA000021 /* Info.plist */,
 				AAA000022 /* Movedoro.entitlements */,
@@ -147,7 +148,6 @@
 			isa = PBXGroup;
 			children = (
 				BBB000010 /* TTSService.swift */,
-				BBB000011 /* SpeechRecognitionService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -241,7 +241,7 @@
 				AAA00000A /* SessionPhotoManager.swift in Sources */,
 				AAA00000B /* SessionGalleryView.swift in Sources */,
 				BBB000001 /* TTSService.swift in Sources */,
-				BBB000002 /* SpeechRecognitionService.swift in Sources */,
+				EEE000001 /* UpdaterController.swift in Sources */,
 				CCC000001 /* PomodoroSession.swift in Sources */,
 				CCC000002 /* JournalEntrySheet.swift in Sources */,
 				CCC000004 /* DaySessionsView.swift in Sources */,
@@ -307,7 +307,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -364,7 +364,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;

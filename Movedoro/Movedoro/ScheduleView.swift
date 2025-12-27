@@ -3,7 +3,6 @@ import SwiftUI
 /// Day progress view showing tomato blocks for each pomodoro slot
 struct ScheduleView: View {
     @EnvironmentObject var appState: AppState
-    @Namespace private var glassNamespace
 
     private let calendar = Calendar.current
 
@@ -59,8 +58,7 @@ struct ScheduleView: View {
                     Text("Timer")
                 }
             }
-            .buttonStyle(.glass)
-            .glassEffectID("backButton", in: glassNamespace)
+            .buttonStyle(.bordered)
 
             Spacer()
 
@@ -68,8 +66,7 @@ struct ScheduleView: View {
                 .font(.headline)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .glassEffect(.regular, in: .capsule)
-                .glassEffectID("titleBadge", in: glassNamespace)
+                .background(.ultraThinMaterial, in: Capsule())
 
             Spacer()
 
@@ -79,8 +76,7 @@ struct ScheduleView: View {
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .glassEffect(.regular, in: .capsule)
-                .glassEffectID("timeRange", in: glassNamespace)
+                .background(.ultraThinMaterial, in: Capsule())
         }
         .padding(.bottom, 20)
     }
@@ -99,8 +95,7 @@ struct ScheduleView: View {
             legendView
         }
         .padding(Constants.cardPadding)
-        .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
-        .glassEffectID("progressCard", in: glassNamespace)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
     }
 
     private var timelineHeader: some View {
@@ -123,8 +118,7 @@ struct ScheduleView: View {
             ForEach(Array(slots.enumerated()), id: \.offset) { index, slot in
                 TomatoBlock(
                     slot: slot,
-                    index: index,
-                    glassNamespace: glassNamespace
+                    index: index
                 )
             }
         }
@@ -154,8 +148,7 @@ struct ScheduleView: View {
             StatItem(value: "\(totalMinutesWorked)m", label: "Focused")
         }
         .padding(Constants.statBarPadding)
-        .glassEffect(.regular, in: .rect(cornerRadius: Constants.statBarCornerRadius))
-        .glassEffectID("statsBar", in: glassNamespace)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.statBarCornerRadius))
     }
 
     // MARK: - Computed Properties
@@ -283,7 +276,6 @@ struct PomodoroSlot {
 struct TomatoBlock: View {
     let slot: PomodoroSlot
     let index: Int
-    var glassNamespace: Namespace.ID
 
     var body: some View {
         VStack(spacing: 4) {
@@ -306,7 +298,6 @@ struct TomatoBlock: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
-        .glassEffectID("tomato-\(index)", in: glassNamespace)
     }
 
     private var tomatoColor: Color {

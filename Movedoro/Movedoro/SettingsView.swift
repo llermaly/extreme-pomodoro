@@ -1,17 +1,13 @@
 import SwiftUI
 import AppKit
 import AVFoundation
-import Speech
 
-/// Settings view with Liquid Glass styling
+/// Settings view
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var speechRecognition = SpeechRecognitionService(deferLocaleSetup: true)
-    @State private var lastRecognizedText = ""
     @State private var ttsService: NativeTTSService?
     @State private var selectedVoiceIdentifier = ""
-    @Namespace private var glassNamespace
 
     private var availableVoices: [AVSpeechSynthesisVoice] {
         NativeTTSService.getPremiumVoices()
@@ -27,18 +23,17 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header with glass toolbar
+            // Header
             headerView
 
             Divider()
 
-            // Form content - uses built-in SwiftUI components per Liquid Glass guidelines
+            // Form content
             Form {
                 timerSection
                 exerciseSection
                 poseDetectionSection
                 voiceSection
-                voiceTestSection
                 advancedSection
 
                 #if DEBUG
@@ -63,12 +58,10 @@ struct SettingsView: View {
 
             Spacer()
 
-            // Primary action button - uses color per Liquid Glass guidelines
             Button("Done") {
                 dismiss()
             }
             .buttonStyle(.borderedProminent)
-            .glassEffectID("doneButton", in: glassNamespace)
         }
         .padding()
     }
@@ -173,7 +166,7 @@ struct SettingsView: View {
             Button("Preview Voice") {
                 testVoice()
             }
-            .buttonStyle(.glass)
+            .buttonStyle(.bordered)
 
             if let tts = ttsService, tts.isSpeaking {
                 HStack {
@@ -188,117 +181,6 @@ struct SettingsView: View {
             Text("Only showing Premium/Enhanced voices. Download more in System Settings > Accessibility > Spoken Content > System Voice > Manage Voices")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-        }
-    }
-
-    // MARK: - Voice Test Section
-
-    private var voiceTestSection: some View {
-        Section("Voice Test") {
-            VStack(alignment: .leading, spacing: 12) {
-                // Locale info
-                HStack {
-                    Text("Recognition Language:")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(speechRecognition.selectedLocale.identifier(.bcp47))
-                        .font(.caption)
-                        .fontWeight(.medium)
-                }
-
-                // Status and control
-                listeningStatusView
-
-                // Real-time transcript
-                if speechRecognition.isListening || !speechRecognition.currentTranscript.isEmpty {
-                    transcriptView
-                }
-
-                // Last response
-                if !lastRecognizedText.isEmpty {
-                    lastResponseView
-                }
-
-                // Error message
-                if let error = speechRecognition.errorMessage {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                }
-
-                // Download progress
-                if let progress = speechRecognition.downloadProgress {
-                    ProgressView(progress)
-                        .progressViewStyle(.linear)
-                }
-            }
-            .padding(.vertical, 4)
-        }
-    }
-
-    private var listeningStatusView: some View {
-        HStack {
-            Circle()
-                .fill(speechRecognition.isListening ? Color.red : Color.secondary)
-                .frame(width: Constants.statusIndicatorSize, height: Constants.statusIndicatorSize)
-
-            Text(speechRecognition.isListening ? "Listening..." : "Not listening")
-                .foregroundStyle(speechRecognition.isListening ? .red : .secondary)
-
-            Spacer()
-
-            Button(speechRecognition.isListening ? "Stop" : "Start Listening") {
-                Task {
-                    if speechRecognition.isListening {
-                        await speechRecognition.stopListening()
-                        if !speechRecognition.finalTranscript.isEmpty {
-                            lastRecognizedText = speechRecognition.finalTranscript
-                            speakResponse(to: lastRecognizedText)
-                        }
-                    } else {
-                        do {
-                            try await speechRecognition.startListening()
-                        } catch {
-                            speechRecognition.errorMessage = error.localizedDescription
-                            print("Failed to start listening: \(error)")
-                        }
-                    }
-                }
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(speechRecognition.isListening ? .red : Color.workAccent)
-        }
-    }
-
-    private var transcriptView: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("You said:")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Text(speechRecognition.currentTranscript.isEmpty ? "..." : speechRecognition.currentTranscript)
-                .font(.body)
-                .foregroundColor(speechRecognition.volatileTranscript.isEmpty ? .primary : .purple)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(8)
-                .background(Color.glassBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-        }
-    }
-
-    private var lastResponseView: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Trainer heard:")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Text("\"\(lastRecognizedText)\"")
-                .font(.body)
-                .italic()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(8)
-                .background(Color.workAccent.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }
 
@@ -345,12 +227,6 @@ struct SettingsView: View {
     #endif
 
     // MARK: - Helper Methods
-
-    private func speakResponse(to text: String) {
-        ttsService = NativeTTSService()
-        let response = "I heard you say: \(text)"
-        ttsService?.speak(response)
-    }
 
     private func testVoice() {
         ttsService = NativeTTSService()

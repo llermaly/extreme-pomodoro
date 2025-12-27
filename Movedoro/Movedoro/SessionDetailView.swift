@@ -1,12 +1,11 @@
 import SwiftUI
 import AppKit
 
-/// Detailed view of a single pomodoro session with Liquid Glass styling
+/// Detailed view of a single pomodoro session
 struct SessionDetailView: View {
     let session: PomodoroSession
     @ObservedObject var sessionStore: SessionStore
     @Binding var navigationPath: NavigationPath
-    @Namespace private var glassNamespace
 
     @State private var journalText: String = ""
     @State private var isEditingJournal: Bool = false
@@ -58,12 +57,11 @@ struct SessionDetailView: View {
                     Text("Back")
                 }
             }
-            .buttonStyle(.glass)
-            .glassEffectID("backButton", in: glassNamespace)
+            .buttonStyle(.bordered)
 
             Spacer()
 
-            // Status badge with glass effect
+            // Status badge
             HStack(spacing: 6) {
                 Circle()
                     .fill(statusColor)
@@ -74,8 +72,7 @@ struct SessionDetailView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .glassEffect(.regular, in: .capsule)
-            .glassEffectID("statusBadge", in: glassNamespace)
+            .background(.ultraThinMaterial, in: Capsule())
 
             Spacer()
 
@@ -109,7 +106,7 @@ struct SessionDetailView: View {
 
             Spacer()
 
-            // Large status indicator with glass
+            // Large status indicator
             VStack {
                 Image(systemName: statusIcon)
                     .font(.system(size: 36))
@@ -119,12 +116,10 @@ struct SessionDetailView: View {
                     .foregroundStyle(statusColor)
             }
             .padding()
-            .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
-            .glassEffectID("statusIndicator", in: glassNamespace)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
         }
         .padding(Constants.cardPadding)
-        .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
-        .glassEffectID("sessionHeader", in: glassNamespace)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
     }
 
     // MARK: - Photos Section
@@ -141,8 +136,7 @@ struct SessionDetailView: View {
                     Button("Open Folder") {
                         NSWorkspace.shared.open(URL(fileURLWithPath: path))
                     }
-                    .buttonStyle(.glass)
-                    .glassEffectID("openFolder", in: glassNamespace)
+                    .buttonStyle(.bordered)
                 }
             }
 
@@ -153,8 +147,7 @@ struct SessionDetailView: View {
             }
         }
         .padding(Constants.cardPadding)
-        .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
-        .glassEffectID("photosSection", in: glassNamespace)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
     }
 
     private var emptyPhotosView: some View {
@@ -178,7 +171,7 @@ struct SessionDetailView: View {
             ForEach(repNumbers, id: \.self) { repNumber in
                 let repPhotos = loadedPhotos.filter { $0.repNumber == repNumber }
                 ForEach(repPhotos) { photo in
-                    DetailPhotoCard(photo: photo, glassNamespace: glassNamespace)
+                    DetailPhotoCard(photo: photo)
                 }
             }
         }
@@ -199,7 +192,7 @@ struct SessionDetailView: View {
                         journalText = session.journalEntry ?? ""
                         isEditingJournal = false
                     }
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
 
                     Button("Save") {
                         let entry = journalText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -211,15 +204,14 @@ struct SessionDetailView: View {
                     Button("Edit") {
                         isEditingJournal = true
                     }
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
                 }
             }
 
             journalContent
         }
         .padding(Constants.cardPadding)
-        .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
-        .glassEffectID("journalSection", in: glassNamespace)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
     }
 
     @ViewBuilder
@@ -339,10 +331,9 @@ struct SessionDetailView: View {
     }
 }
 
-/// Photo card with Liquid Glass styling
+/// Photo card
 struct DetailPhotoCard: View {
     let photo: SessionDetailView.LoadedPhoto
-    var glassNamespace: Namespace.ID
 
     var body: some View {
         VStack(spacing: 8) {
@@ -367,8 +358,7 @@ struct DetailPhotoCard: View {
             }
         }
         .padding(8)
-        .glassEffect(.regular, in: .rect(cornerRadius: Constants.sessionItemCornerRadius))
-        .glassEffectID("photo-\(photo.id)", in: glassNamespace)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.sessionItemCornerRadius))
     }
 
     private var borderColor: Color {

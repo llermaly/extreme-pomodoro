@@ -1,7 +1,7 @@
 import SwiftUI
 import AVFoundation
 
-/// Fullscreen exercise overlay with Liquid Glass styling
+/// Fullscreen exercise overlay
 struct ExerciseOverlayView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var cameraCapture = CameraCapture()
@@ -13,7 +13,6 @@ struct ExerciseOverlayView: View {
     @State private var hasAnnouncedCompletion = false
     @State private var showDebugInfo = false
     @State private var hasSetupCompleted = false
-    @Namespace private var glassNamespace
 
     var repsRequired: Int { appState.repsRequired }
     var repsCompleted: Int { poseDetector.exerciseCount }
@@ -21,19 +20,19 @@ struct ExerciseOverlayView: View {
 
     var body: some View {
         ZStack {
-            // Background layer - subtle gradient that shines through glass
+            // Background layer
             backgroundLayer
 
             VStack(spacing: Constants.standardPadding) {
-                // Header with glass effect
+                // Header
                 headerView
                     .padding(.horizontal, 40)
                     .padding(.top, 20)
 
-                // Camera preview - main content layer
+                // Camera preview
                 cameraPreviewLayer
 
-                // Status bar with glass effect
+                // Status bar
                 statusBarView
                     .padding(.horizontal, 40)
 
@@ -66,11 +65,9 @@ struct ExerciseOverlayView: View {
 
     private var backgroundLayer: some View {
         ZStack {
-            // Dark base
             Color.black.opacity(0.95)
                 .ignoresSafeArea()
 
-            // Subtle radial gradient for depth
             RadialGradient(
                 colors: [
                     isComplete ? Color.breakAccent.opacity(0.15) : Color.workAccent.opacity(0.08),
@@ -88,7 +85,6 @@ struct ExerciseOverlayView: View {
 
     private var headerView: some View {
         HStack {
-            // Title and subtitle
             VStack(alignment: .leading, spacing: 4) {
                 Text("Break Time!")
                     .font(.largeTitle)
@@ -102,7 +98,6 @@ struct ExerciseOverlayView: View {
 
             Spacer()
 
-            // Rep counter with glass effect - primary focus element
             repCounterView
         }
     }
@@ -111,7 +106,6 @@ struct ExerciseOverlayView: View {
         HStack(spacing: 8) {
             Text("\(repsCompleted)")
                 .font(.system(size: Constants.repCounterFontSize, weight: .bold, design: .rounded))
-                // Color used for completion state - key information
                 .foregroundStyle(isComplete ? Color.breakAccent : .white)
 
             Text("/ \(repsRequired)")
@@ -120,8 +114,7 @@ struct ExerciseOverlayView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
-        .glassEffect(.regular, in: .capsule)
-        .glassEffectID("repCounter", in: glassNamespace)
+        .background(.ultraThinMaterial, in: Capsule())
     }
 
     // MARK: - Camera Preview
@@ -136,12 +129,10 @@ struct ExerciseOverlayView: View {
                         PoseOverlayView(pose: poseDetector.currentPose, imageSize: CGSize(width: 800, height: 600))
                     }
 
-                    // Gesture hold progress indicator
                     if poseDetector.gestureHoldProgress > 0 {
                         gestureProgressIndicator
                     }
 
-                    // Completion overlay with big button
                     if isComplete {
                         completionOverlay
                     }
@@ -149,7 +140,6 @@ struct ExerciseOverlayView: View {
                 .frame(maxWidth: Constants.cameraPreviewMaxWidth, maxHeight: Constants.cameraPreviewMaxHeight)
                 .clipShape(RoundedRectangle(cornerRadius: Constants.cameraPreviewCornerRadius))
             } else {
-                // Camera not running - placeholder
                 cameraPlaceholder
             }
         }
@@ -168,19 +158,16 @@ struct ExerciseOverlayView: View {
             HStack {
                 Spacer()
                 ZStack {
-                    // Background circle
                     Circle()
                         .stroke(Color.white.opacity(0.3), lineWidth: 8)
                         .frame(width: 80, height: 80)
 
-                    // Progress circle
                     Circle()
                         .trim(from: 0, to: poseDetector.gestureHoldProgress)
                         .stroke(Color.cyan, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                         .frame(width: 80, height: 80)
                         .rotationEffect(.degrees(-90))
 
-                    // Countdown text
                     Text("\(max(1, Int(ceil(2.0 * (1.0 - poseDetector.gestureHoldProgress)))))")
                         .font(.system(size: 32, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
@@ -192,7 +179,6 @@ struct ExerciseOverlayView: View {
 
     private var completionOverlay: some View {
         ZStack {
-            // Semi-transparent background
             Color.black.opacity(0.7)
 
             VStack(spacing: 20) {
@@ -255,7 +241,6 @@ struct ExerciseOverlayView: View {
 
     private var statusBarView: some View {
         HStack(spacing: 20) {
-            // Camera status indicator
             StatusIndicator(
                 isActive: cameraCapture.isCapturing,
                 activeLabel: "Camera on",
@@ -263,11 +248,11 @@ struct ExerciseOverlayView: View {
                 activeColor: .green,
                 inactiveColor: .red
             )
-            .glassEffect(.regular, in: .capsule)
-            .glassEffectID("cameraStatus", in: glassNamespace)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(.ultraThinMaterial, in: Capsule())
 
             if cameraCapture.isCapturing {
-                // Pose status
                 StatusIndicator(
                     isActive: poseDetector.isPersonDetected,
                     activeLabel: poseDetector.poseDescription,
@@ -275,15 +260,14 @@ struct ExerciseOverlayView: View {
                     activeColor: .green,
                     inactiveColor: .orange
                 )
-                .glassEffect(.regular, in: .capsule)
-                .glassEffectID("poseStatus", in: glassNamespace)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(.ultraThinMaterial, in: Capsule())
 
-                // Exercise state (if calibrated)
                 if poseDetector.currentExercise == .sitToStand && poseDetector.isCalibrated {
                     exerciseStateIndicator
                 }
 
-                // 3D mode info
                 if poseDetector.detectionMode == .mode3D && poseDetector.isPersonDetected {
                     mode3DInfo
                 }
@@ -291,15 +275,13 @@ struct ExerciseOverlayView: View {
 
             Spacer()
 
-            // Controls group
             if cameraCapture.isCapturing {
                 controlsGroup
             } else if !isSettingUp {
                 Button(action: { startCamera() }) {
                     Label("Start Camera", systemImage: "camera")
                 }
-                .buttonStyle(.glass)
-                .glassEffectID("startCameraBtn", in: glassNamespace)
+                .buttonStyle(.bordered)
             }
         }
     }
@@ -315,8 +297,7 @@ struct ExerciseOverlayView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .glassEffect(.regular, in: .capsule)
-        .glassEffectID("exerciseState", in: glassNamespace)
+        .background(.ultraThinMaterial, in: Capsule())
     }
 
     private var mode3DInfo: some View {
@@ -339,13 +320,11 @@ struct ExerciseOverlayView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .glassEffect(.regular, in: .capsule)
-        .glassEffectID("mode3DInfo", in: glassNamespace)
+        .background(.ultraThinMaterial, in: Capsule())
     }
 
     private var controlsGroup: some View {
         HStack(spacing: 8) {
-            // Mode badge
             Text(poseDetector.detectionMode.rawValue)
                 .font(.caption)
                 .fontWeight(.bold)
@@ -357,8 +336,7 @@ struct ExerciseOverlayView: View {
 
             Toggle("Skeleton", isOn: $showPoseOverlay)
                 .toggleStyle(.button)
-                .buttonStyle(.glass)
-                .glassEffectID("skeletonToggle", in: glassNamespace)
+                .buttonStyle(.bordered)
         }
     }
 
@@ -396,7 +374,6 @@ struct ExerciseOverlayView: View {
             .buttonStyle(.borderedProminent)
             .tint(Color.breakAccent)
             .controlSize(.large)
-            .glassEffectID("continueButton", in: glassNamespace)
         }
         .padding(.top, 10)
     }
@@ -413,13 +390,12 @@ struct ExerciseOverlayView: View {
                     .fontWeight(.medium)
                     .foregroundStyle(Color.workAccent)
                     .padding()
-                    .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
-                    .glassEffectID("calibrationMessage", in: glassNamespace)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
 
                 Button("Cancel") {
                     poseDetector.cancelCalibration()
                 }
-                .buttonStyle(.glass)
+                .buttonStyle(.bordered)
                 .tint(.red)
             } else {
                 Button("Calibrate Now") {
@@ -438,8 +414,7 @@ struct ExerciseOverlayView: View {
             .fontWeight(.medium)
             .foregroundStyle(.white.opacity(0.9))
             .padding()
-            .glassEffect(.regular, in: .capsule)
-            .glassEffectID("remainingReps", in: glassNamespace)
+            .background(.ultraThinMaterial, in: Capsule())
     }
 
     // MARK: - Helper Methods
@@ -518,7 +493,7 @@ struct ExerciseOverlayView: View {
                 }) {
                     Label("Skip", systemImage: "forward.end.fill")
                 }
-                .buttonStyle(.glass)
+                .buttonStyle(.bordered)
                 .tint(.orange)
 
                 Button(action: {
@@ -527,20 +502,20 @@ struct ExerciseOverlayView: View {
                 }) {
                     Label("+1 Rep", systemImage: "plus.circle.fill")
                 }
-                .buttonStyle(.glass)
+                .buttonStyle(.bordered)
                 .tint(.green)
 
                 if !cameraCapture.isCapturing {
                     Button(action: { startCamera() }) {
                         Label("Force Camera", systemImage: "camera")
                     }
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
                     .tint(Color.workAccent)
                 }
 
                 Toggle("Debug", isOn: $showDebugInfo)
                     .toggleStyle(.button)
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
                     .tint(.purple)
             }
 
@@ -564,7 +539,6 @@ struct ExerciseOverlayView: View {
                 .foregroundStyle(.yellow)
 
             HStack(spacing: 20) {
-                // Joints detection status
                 VStack(alignment: .leading, spacing: 2) {
                     Text("JOINTS").font(.caption2).foregroundStyle(.gray)
                     HStack(spacing: 4) {
@@ -673,7 +647,7 @@ struct ExerciseOverlayView: View {
             .font(.system(size: 12, design: .monospaced))
         }
         .padding()
-        .glassEffect(.regular, in: .rect(cornerRadius: Constants.cardCornerRadius))
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: Constants.cardCornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: Constants.cardCornerRadius)
                 .strokeBorder(Color.yellow.opacity(0.5), lineWidth: 1)
@@ -710,8 +684,6 @@ private struct StatusIndicator: View {
             Text(isActive ? activeLabel : inactiveLabel)
                 .foregroundStyle(isActive ? activeColor : inactiveColor)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
     }
 }
 
