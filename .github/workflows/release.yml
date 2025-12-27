@@ -173,7 +173,7 @@ jobs:
       - name: Download Sparkle
         run: |
           cd ${{ runner.temp }}
-          curl -L -o Sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.6.4/Sparkle-2.6.4.tar.xz
+          curl -L -o Sparkle.tar.xz https://github.com/sparkle-project/Sparkle/releases/download/2.8.1/Sparkle-2.8.1.tar.xz
           mkdir Sparkle
           tar -xf Sparkle.tar.xz -C Sparkle
 
